@@ -1,0 +1,11 @@
+{
+  "title": "wellnesssih2026",
+  "description": "Enables uniformed personnel to securely log daily wellness check-ins focused on operational readiness with a calm, professional, and private interface.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
