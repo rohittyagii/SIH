@@ -1,3 +1,4 @@
+from __future__ import annotations
 """JWT creation/validation and password hashing."""
 from datetime import datetime, timedelta, timezone
 

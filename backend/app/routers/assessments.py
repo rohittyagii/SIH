@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Assessments router — triage, trends, AI run, and status update."""
 import uuid
 import random

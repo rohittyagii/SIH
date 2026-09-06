@@ -1,3 +1,4 @@
+from __future__ import annotations
 """AES-256-GCM encryption for free-text notes and PII fields."""
 import os
 import base64

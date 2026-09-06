@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, List, Dict, Any, Union
 """SQLAlchemy ORM — HRMetrics (operational data per soldier)"""
 import uuid
 from datetime import datetime, timezone

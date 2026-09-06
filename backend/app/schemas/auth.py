@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Pydantic schemas for auth endpoints."""
 from pydantic import BaseModel, Field
 from app.models.user import UserRole

@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional
 """SQLAlchemy ORM — User, ActivationCode"""
 import uuid
 import enum
@@ -29,7 +31,7 @@ class Unit(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
-    parent_unit_id: Mapped[uuid.UUID | None] = mapped_column(
+    parent_unit_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("units.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -56,12 +58,15 @@ class User(Base):
 
     # Auth
     pin_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole, name="userrole"), nullable=False, default=UserRole.PERSONNEL)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(UserRole, name="userrole", values_callable=lambda x: [e.value for e in x]),
+        nullable=False, default=UserRole.PERSONNEL
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Consent
     consent_given: Mapped[bool] = mapped_column(Boolean, default=False)
-    consent_given_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    consent_given_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Preferences
     language_pref: Mapped[str] = mapped_column(String(10), default="en-GB")
@@ -76,7 +81,7 @@ class User(Base):
     # relationships
     unit: Mapped["Unit"] = relationship("Unit", back_populates="users")
     checkins: Mapped[list["WellnessCheckin"]] = relationship("WellnessCheckin", back_populates="user")
-    hr_metrics: Mapped["HRMetrics | None"] = relationship("HRMetrics", back_populates="user", uselist=False)
+    hr_metrics: Mapped[Optional["HRMetrics"]] = relationship("HRMetrics", back_populates="user", uselist=False)
     assessments: Mapped[list["AIAssessment"]] = relationship(
         "AIAssessment", back_populates="user", foreign_keys="AIAssessment.user_id"
     )
@@ -93,6 +98,6 @@ class ActivationCode(Base):
     unit_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("units.id"), nullable=False)
     is_used: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     unit: Mapped["Unit"] = relationship("Unit", back_populates="activation_codes")

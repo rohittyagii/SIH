@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional
 """Users router — preferences, data export, data deletion (Flutter app)."""
 import json
 from datetime import datetime, timezone
@@ -16,11 +18,11 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 class PreferencesUpdate(BaseModel):
-    theme_dark: bool | None = None
-    language_pref: str | None = None
-    notif_daily_reminder: bool | None = None
-    notif_sync_alerts: bool | None = None
-    notif_weekly_summary: bool | None = None
+    theme_dark: Optional[bool] = None
+    language_pref: Optional[str] = None
+    notif_daily_reminder: Optional[bool] = None
+    notif_sync_alerts: Optional[bool] = None
+    notif_weekly_summary: Optional[bool] = None
 
 
 class ConsentUpdate(BaseModel):

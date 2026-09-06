@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Shared FastAPI dependencies — DB session, current user, role guards."""
 from typing import Annotated
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Auth router — serves both the web dashboard (OAuth2 form) and Flutter (JSON)."""
 from typing import Annotated
 from datetime import datetime, timezone

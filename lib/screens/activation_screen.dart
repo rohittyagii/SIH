@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
+import '../services/auth_service.dart';
+import '../services/api_client.dart';
 
 // ── ActivationScreen ────────────────────────────────────────────────────────
 class ActivationScreen extends ConsumerStatefulWidget {
@@ -15,24 +18,45 @@ class ActivationScreen extends ConsumerStatefulWidget {
 
 class _ActivationScreenState extends ConsumerState<ActivationScreen> {
   String _raw = '';
+  String _name = '';
+  String _pin = '';
   bool _loading = false;
+  String? _error;
 
   String get _formatted => _raw.length > 4 ? '${_raw.substring(0, 4)}-${_raw.substring(4)}' : _raw;
-  bool get _isReady => _raw.length == 8;
+  bool get _isReady => _raw.length == 8 && _name.trim().length >= 2 && _pin.length == 6;
   bool get _active  => _isReady && !_loading;
 
-  void _handleChanged(String text) {
-    // Strip non-alphanumeric, uppercase, cap at 8 raw chars
+  void _handleCode(String text) {
     final clean = text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
     setState(() => _raw = clean.length > 8 ? clean.substring(0, 8) : clean);
   }
 
   Future<void> _activate() async {
     if (!_isReady || _loading) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 1600));
-    if (!mounted) return;
-    widget.onActivated();
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final auth = ref.read(authServiceProvider);
+      final user = await auth.activateDevice(_formatted, _pin, _name.trim());
+      
+      // Save service_id and name for login screen
+      const storage = FlutterSecureStorage();
+      await storage.write(key: 'service_id', value: user['service_id']);
+      await storage.write(key: 'user_name', value: user['username']);
+      
+      if (!mounted) return;
+      widget.onActivated();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString().contains('400') ? 'Invalid or already used code.' : 'Activation failed. Check network.';
+      });
+    }
   }
 
   @override
@@ -46,101 +70,72 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 64, bottom: 32),
+                  padding: const EdgeInsets.only(top: 32, bottom: 24),
                   child: Container(
                     width: 64, height: 64,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
                       color: AppColors.indigo.withValues(alpha: 0.10),
                       border: Border.all(color: AppColors.indigo.withValues(alpha: 0.24)),
-                      boxShadow: [BoxShadow(color: AppColors.indigo.withValues(alpha: 0.10), blurRadius: 48)],
                     ),
                     child: const Center(child: IconShield(size: 28, color: AppColors.indigo)),
                   ),
                 ),
               ),
-              // Heading
-              Text('READINESS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: context.rrT6, letterSpacing: 0.10)),
-              const SizedBox(height: 10),
               Text('Activate this device',
                 style: TextStyle(fontSize: 27, fontWeight: FontWeight.w600, color: context.rrT1, height: 1.25)),
               const SizedBox(height: 14),
-              Text('Your unit welfare office issued you a one-time activation code. Enter it here to link your personal readiness tracker.',
+              Text('Enter your code, full name, and create a 6-digit PIN.',
                 style: TextStyle(fontSize: 14, color: context.rrT3, height: 1.65)),
-              const SizedBox(height: 32),
-              // Code input card
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                Text(_error!, style: const TextStyle(color: AppColors.score1, fontSize: 14)),
+              ],
+              const SizedBox(height: 24),
               Opacity(
                 opacity: _loading ? 0.55 : 1.0,
                 child: RrCard(
                   child: Column(
                     children: [
                       Text('Activation code', style: TextStyle(fontSize: 12, color: context.rrT4)),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 8),
                       TextField(
                         enabled: !_loading,
                         textAlign: TextAlign.center,
-                        keyboardType: TextInputType.text,
                         textCapitalization: TextCapitalization.characters,
-                        autocorrect: false,
-                        maxLength: 9,
-                        onChanged: _handleChanged,
-                        style: TextStyle(
-                          fontFamily: 'JetBrains Mono',
-                          fontSize: 30,
-                          letterSpacing: 8,
-                          color: context.rrT1,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'XXXX-XXXX',
-                          hintStyle: TextStyle(color: context.rrT7, letterSpacing: 8),
-                          border: InputBorder.none,
-                          counterText: '',
-                        ),
-                        controller: TextEditingController(text: _formatted)
-                          ..selection = TextSelection.collapsed(offset: _formatted.length),
+                        onChanged: _handleCode,
+                        style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 24, letterSpacing: 6, color: context.rrT1),
+                        decoration: InputDecoration(hintText: 'XXXX-XXXX', hintStyle: TextStyle(color: context.rrT7, letterSpacing: 6), border: InputBorder.none),
+                        controller: TextEditingController(text: _formatted)..selection = TextSelection.collapsed(offset: _formatted.length),
                       ),
-                      const SizedBox(height: 12),
-                      // Progress bar
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 24),
-                        height: 1.5,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(1),
-                          color: context.rrDv2,
-                        ),
-                        child: FractionallySizedBox(
-                          widthFactor: progress,
-                          alignment: Alignment.centerLeft,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(1),
-                              color: _isReady ? AppColors.indigo : AppColors.indigo.withValues(alpha: 0.45),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text.rich(
-                        TextSpan(
-                          text: 'Printed on the letter from your welfare office. ',
-                          style: TextStyle(fontSize: 12, color: context.rrT5),
-                          children: [
-                            TextSpan(text: 'Single-use. Not connected to your service record.',
-                              style: TextStyle(color: context.rrT4)),
-                          ],
-                        ),
+                      const SizedBox(height: 16),
+                      Text('Full Name', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                      TextField(
+                        enabled: !_loading,
                         textAlign: TextAlign.center,
+                        onChanged: (v) => setState(() => _name = v),
+                        style: TextStyle(fontSize: 18, color: context.rrT1),
+                        decoration: InputDecoration(hintText: 'e.g. Constable Ravi', hintStyle: TextStyle(color: context.rrT7), border: InputBorder.none),
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Create 6-digit PIN', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                      TextField(
+                        enabled: !_loading,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        maxLength: 6,
+                        obscureText: true,
+                        onChanged: (v) => setState(() => _pin = v),
+                        style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 24, letterSpacing: 8, color: context.rrT1),
+                        decoration: InputDecoration(hintText: '******', hintStyle: TextStyle(color: context.rrT7, letterSpacing: 8), border: InputBorder.none, counterText: ''),
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-              // Activate button
               GestureDetector(
                 onTap: _active ? _activate : null,
                 child: AnimatedContainer(
@@ -149,43 +144,15 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
-                    color: _active
-                        ? AppColors.indigo
-                        : _loading
-                            ? AppColors.indigo.withValues(alpha: 0.22)
-                            : AppColors.indigo.withValues(alpha: 0.14),
-                    boxShadow: _active
-                        ? [BoxShadow(color: AppColors.indigo.withValues(alpha: 0.28), blurRadius: 28, offset: const Offset(0, 4))]
-                        : [],
+                    color: _active ? AppColors.indigo : AppColors.indigo.withValues(alpha: 0.14),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_loading) ...[
-                        SizedBox(
-                          width: 15, height: 15,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(AppColors.indigo.withValues(alpha: 0.7)),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                      ],
-                      Text(
-                        _loading ? 'Verifying…' : 'Activate device',
-                        style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600,
-                          color: _active ? const Color(0xFF0C1220) : AppColors.indigo.withValues(alpha: 0.45),
-                        ),
-                      ),
-                    ],
+                  child: Center(
+                    child: Text(
+                      _loading ? 'Activating…' : 'Activate',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _active ? const Color(0xFF0C1220) : AppColors.indigo.withValues(alpha: 0.45)),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: Text('Need a code? Contact your welfare office',
-                  style: TextStyle(fontSize: 14, color: context.rrT4)),
               ),
             ],
           ),

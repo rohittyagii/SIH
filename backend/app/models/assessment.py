@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional
 """SQLAlchemy ORM — AIAssessment (triage workflow state machine)"""
 import uuid
 import enum
@@ -40,7 +42,7 @@ class AIAssessment(Base):
 
     # ML outputs
     risk_level: Mapped[RiskLevel] = mapped_column(
-        SAEnum(RiskLevel, name="risklevel", create_constraint=False),
+        SAEnum(RiskLevel, name="risklevel", create_constraint=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
     )
     resilience_score: Mapped[int] = mapped_column(Integer, nullable=False)     # 0–100
@@ -56,14 +58,14 @@ class AIAssessment(Base):
 
     # Triage workflow
     status: Mapped[AssessmentStatus] = mapped_column(
-        SAEnum(AssessmentStatus, name="assessmentstatus"),
+        SAEnum(AssessmentStatus, name="assessmentstatus", values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=AssessmentStatus.PENDING,
     )
-    acknowledged_by: Mapped[uuid.UUID | None] = mapped_column(
+    acknowledged_by: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     # relationships
@@ -78,7 +80,7 @@ class SupportRequest(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     request_type: Mapped[str] = mapped_column(String(30), default="Callback")
     status: Mapped[str] = mapped_column(String(20), default="Pending")
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="support_requests")  # type: ignore[name-defined]
@@ -91,8 +93,8 @@ class AuditLog(Base):
     actor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    resource_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    resource_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     actor: Mapped["User"] = relationship("User", back_populates="audit_logs")  # type: ignore[name-defined]

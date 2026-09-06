@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, List, Dict, Any, Union
 """SQLAlchemy ORM — WellnessCheckin"""
 import uuid
 import enum
@@ -43,11 +45,11 @@ class WellnessCheckin(Base):
     average_score: Mapped[float] = mapped_column(Float, nullable=False)
 
     # Free-text note — AES-256-GCM encrypted bytes
-    note_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    note_encrypted: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
 
     # ML-computed risk tier
     risk_level: Mapped[RiskLevel] = mapped_column(
-        SAEnum(RiskLevel, name="risklevel"),
+        SAEnum(RiskLevel, name="risklevel", values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=RiskLevel.ROUTINE,
     )

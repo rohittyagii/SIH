@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Pydantic schemas for personnel and HR metrics endpoints."""
 from datetime import datetime
 from typing import Optional

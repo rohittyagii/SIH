@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Personnel router — web dashboard."""
 from typing import Optional
 

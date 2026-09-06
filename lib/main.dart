@@ -13,9 +13,22 @@ import 'screens/trend_screen.dart';
 import 'screens/support_screen.dart';
 import 'screens/settings_screen.dart';
 import 'data/seed.dart';
+import 'services/checkin_service.dart';
+import 'services/sync_service.dart';
 
-void main() {
-  runApp(const ProviderScope(child: SainikSaathiApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // We need a ProviderContainer to init SyncService before runApp if we want to do it here,
+  // or we can init SyncService's Hive stuff inside a Riverpod hook or async main.
+  final container = ProviderContainer();
+  final syncService = container.read(syncServiceProvider);
+  await syncService.init();
+
+  runApp(UncontrolledProviderScope(
+    container: container,
+    child: const SainikSaathiApp(),
+  ));
 }
 
 // ── Root app ────────────────────────────────────────────────────────────────
@@ -68,11 +81,51 @@ class _AppShell extends ConsumerWidget {
 }
 
 // ── Main app — bottom-tab shell + check-in overlays ─────────────────────────
-class _MainApp extends ConsumerWidget {
+class _MainApp extends ConsumerStatefulWidget {
   const _MainApp();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends ConsumerState<_MainApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh history and status on app start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
+  }
+  
+  Future<void> _loadInitialData() async {
+    try {
+      final syncSvc = ref.read(syncServiceProvider);
+      await syncSvc.syncIfOnline();
+      
+      final chkSvc = ref.read(checkinServiceProvider);
+      final todayStatus = await chkSvc.checkTodayStatus();
+      if (todayStatus['has_checked_in'] == true) {
+        ref.read(todayDoneProvider.notifier).state = true;
+      }
+      
+      final historyRaw = await chkSvc.getHistory();
+      final history = historyRaw.map((e) => Entry(
+        date: e['checkin_date'],
+        overall: e['overall_score'],
+        sleep: e['sleep_score'],
+        physical: e['physical_score'],
+        focus: e['focus_score'],
+        note: e['note'] ?? '',
+      )).toList();
+      ref.read(historyProvider.notifier).state = history;
+    } catch (e) {
+      // Ignored for now, keep seed history if offline
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tab        = ref.watch(tabProvider);
     final inCheckin  = ref.watch(inCheckinProvider);
     final submitted  = ref.watch(submittedProvider);
@@ -92,7 +145,29 @@ class _MainApp extends ConsumerWidget {
           ref.read(scoresProvider.notifier).state = next;
         },
         onNoteChanged: (s) => ref.read(noteProvider.notifier).state = s,
-        onSubmit: () {
+        onSubmit: () async {
+          // Send to API
+          try {
+            final chkSvc = ref.read(checkinServiceProvider);
+            await chkSvc.submitCheckin(
+              overall: scores[DimKey.overall]!,
+              sleep: scores[DimKey.sleep]!,
+              physical: scores[DimKey.physical]!,
+              focus: scores[DimKey.focus]!,
+              note: note,
+            );
+          } catch (e) {
+            // Save offline if failed
+            final syncSvc = ref.read(syncServiceProvider);
+            await syncSvc.saveOfflineCheckin({
+              'overall_score': scores[DimKey.overall]!,
+              'sleep_score': scores[DimKey.sleep]!,
+              'physical_score': scores[DimKey.physical]!,
+              'focus_score': scores[DimKey.focus]!,
+              'note': note,
+            });
+          }
+
           ref.read(historyProvider.notifier).state = [buildEntry(scores, note), ...history];
           ref.read(inCheckinProvider.notifier).state  = false;
           ref.read(submittedProvider.notifier).state  = true;
@@ -159,7 +234,10 @@ class _MainApp extends ConsumerWidget {
           isDark: isDark,
           onThemeToggle: () =>
               ref.read(themeProvider.notifier).state = !ref.read(themeProvider),
-          onLogout: () {
+          onLogout: () async {
+            try {
+              await ref.read(authServiceProvider).logout();
+            } catch (_) {}
             ref.read(inCheckinProvider.notifier).state  = false;
             ref.read(submittedProvider.notifier).state  = false;
             ref.read(tabProvider.notifier).state        = AppTab.home;
@@ -169,3 +247,4 @@ class _MainApp extends ConsumerWidget {
     }
   }
 }
+

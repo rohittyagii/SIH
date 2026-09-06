@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Wellness check-in router — Flutter mobile app."""
 from datetime import date, datetime, timezone
 from typing import Optional

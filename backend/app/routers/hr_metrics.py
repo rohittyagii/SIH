@@ -1,3 +1,4 @@
+from __future__ import annotations
 """HR Metrics router — unit summary for web dashboard."""
 from fastapi import APIRouter
 from sqlalchemy import select, func

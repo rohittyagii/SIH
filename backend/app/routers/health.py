@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Health check endpoints."""
 from fastapi import APIRouter
 from sqlalchemy import text

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Pydantic schemas for wellness check-ins."""
 from datetime import date, datetime
 from typing import Optional

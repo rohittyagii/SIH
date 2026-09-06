@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional
 """Support router — callback requests (Flutter app)."""
 import uuid
 from datetime import datetime, timezone
@@ -14,7 +16,7 @@ router = APIRouter(prefix="/support", tags=["support"])
 
 class CallbackRequest(BaseModel):
     request_type: str = "Callback"
-    notes: str | None = None
+    notes: Optional[str] = None
 
 
 @router.post("/callback", status_code=status.HTTP_201_CREATED)

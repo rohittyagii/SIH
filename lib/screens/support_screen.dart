@@ -3,13 +3,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
+import '../services/support_service.dart';
 
 // ── SupportScreen ─────────────────────────────────────────────────────────────
-class SupportScreen extends ConsumerWidget {
+class SupportScreen extends ConsumerStatefulWidget {
   const SupportScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SupportScreen> createState() => _SupportScreenState();
+}
+
+class _SupportScreenState extends ConsumerState<SupportScreen> {
+  bool _requesting = false;
+  bool _requested = false;
+  
+  Future<void> _handleCallback(WidgetRef ref) async {
+    if (_requesting || _requested) return;
+    setState(() => _requesting = true);
+    try {
+      await ref.read(supportServiceProvider).requestCallback();
+      if (!mounted) return;
+      setState(() {
+        _requesting = false;
+        _requested = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Callback requested. Your welfare officer will contact you shortly.'), backgroundColor: AppColors.score5)
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _requesting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to request callback. Please try again.'), backgroundColor: AppColors.score1)
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.rrBg,
       body: SafeArea(
@@ -68,21 +99,29 @@ class SupportScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: AppColors.indigo.withValues(alpha: 0.12),
-                        border: Border.all(
-                            color: AppColors.indigo.withValues(alpha: 0.20)),
-                      ),
-                      child: const Center(
-                        child: Text('Contact welfare office',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.indigo)),
+                    GestureDetector(
+                      onTap: () => _handleCallback(ref),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: _requested 
+                              ? AppColors.score5.withValues(alpha: 0.12)
+                              : AppColors.indigo.withValues(alpha: 0.12),
+                          border: Border.all(
+                              color: _requested 
+                                  ? AppColors.score5.withValues(alpha: 0.20)
+                                  : AppColors.indigo.withValues(alpha: 0.20)),
+                        ),
+                        child: Center(
+                          child: Text(
+                              _requesting ? 'Requesting...' : _requested ? 'Callback Requested' : 'Contact welfare office',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: _requested ? AppColors.score5 : AppColors.indigo)),
+                        ),
                       ),
                     ),
                   ],
@@ -163,7 +202,7 @@ class SupportScreen extends ConsumerWidget {
                             color: context.rrT2)),
                     const SizedBox(height: 8),
                     Text(
-                        'Your check-ins are stored locally on this device and are never shared without your consent. This app is provided by your unit welfare office as a voluntary wellbeing tool.',
+                        'Your check-ins are synchronized with your unit welfare dashboard to monitor overall readiness. Personal data is managed in accordance with policy.',
                         style: TextStyle(
                             fontSize: 13, color: context.rrT3, height: 1.6)),
                   ],
