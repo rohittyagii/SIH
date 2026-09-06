@@ -19,10 +19,13 @@ class SupportScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Resources & support',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: context.rrT1)),
               const SizedBox(height: 4),
               Text('Confidential support, available any time',
-                style: TextStyle(fontSize: 13, color: context.rrT4)),
+                  style: TextStyle(fontSize: 13, color: context.rrT4)),
               const SizedBox(height: 24),
               // Welfare officer card
               RrCard(
@@ -32,12 +35,15 @@ class SupportScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 32, height: 32,
+                          width: 32,
+                          height: 32,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(9),
                             color: AppColors.indigo.withValues(alpha: 0.12),
                           ),
-                          child: const Center(child: IconShield(size: 14, color: AppColors.indigo)),
+                          child: const Center(
+                              child: IconShield(
+                                  size: 14, color: AppColors.indigo)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -45,10 +51,17 @@ class SupportScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Talk to your welfare officer',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: context.rrT1)),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: context.rrT1)),
                               const SizedBox(height: 4),
-                              Text('Conversations are confidential unless you decide otherwise. No formal record is created.',
-                                style: TextStyle(fontSize: 13, color: context.rrT3, height: 1.6)),
+                              Text(
+                                  'Conversations are confidential unless you decide otherwise. No formal record is created.',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: context.rrT3,
+                                      height: 1.6)),
                             ],
                           ),
                         ),
@@ -61,11 +74,15 @@ class SupportScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: AppColors.indigo.withValues(alpha: 0.12),
-                        border: Border.all(color: AppColors.indigo.withValues(alpha: 0.20)),
+                        border: Border.all(
+                            color: AppColors.indigo.withValues(alpha: 0.20)),
                       ),
                       child: const Center(
                         child: Text('Contact welfare office',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.indigo)),
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.indigo)),
                       ),
                     ),
                   ],
@@ -78,10 +95,14 @@ class SupportScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('24-hour support line',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: context.rrT1)),
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: context.rrT1)),
                     const SizedBox(height: 4),
                     Text('Free and confidential — any time, any day.',
-                      style: TextStyle(fontSize: 13, color: context.rrT3, height: 1.6)),
+                        style: TextStyle(
+                            fontSize: 13, color: context.rrT3, height: 1.6)),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -91,11 +112,16 @@ class SupportScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               color: AppColors.score5.withValues(alpha: 0.10),
-                              border: Border.all(color: AppColors.score5.withValues(alpha: 0.20)),
+                              border: Border.all(
+                                  color:
+                                      AppColors.score5.withValues(alpha: 0.20)),
                             ),
-                            child: Center(
+                            child: const Center(
                               child: Text('0800 323 4444',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.score5)),
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.score5)),
                             ),
                           ),
                         ),
@@ -106,11 +132,16 @@ class SupportScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               color: AppColors.dimSleep.withValues(alpha: 0.10),
-                              border: Border.all(color: AppColors.dimSleep.withValues(alpha: 0.20)),
+                              border: Border.all(
+                                  color: AppColors.dimSleep
+                                      .withValues(alpha: 0.20)),
                             ),
-                            child: Center(
+                            child: const Center(
                               child: Text('Text BLUE to 85258',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.dimSleep)),
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.dimSleep)),
                             ),
                           ),
                         ),
@@ -126,10 +157,15 @@ class SupportScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('About this service',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.rrT2)),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: context.rrT2)),
                     const SizedBox(height: 8),
-                    Text('Your check-ins are stored locally on this device and are never shared without your consent. This app is provided by your unit welfare office as a voluntary wellbeing tool.',
-                      style: TextStyle(fontSize: 13, color: context.rrT3, height: 1.6)),
+                    Text(
+                        'Your check-ins are stored locally on this device and are never shared without your consent. This app is provided by your unit welfare office as a voluntary wellbeing tool.',
+                        style: TextStyle(
+                            fontSize: 13, color: context.rrT3, height: 1.6)),
                   ],
                 ),
               ),

@@ -18,22 +18,24 @@ class _PinDots extends StatefulWidget {
   State<_PinDots> createState() => _PinDotsState();
 }
 
-class _PinDotsState extends State<_PinDots> with SingleTickerProviderStateMixin {
+class _PinDotsState extends State<_PinDots>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _shake;
   late final Animation<double> _offset;
 
   @override
   void initState() {
     super.initState();
-    _shake = AnimationController(duration: const Duration(milliseconds: 520), vsync: this);
+    _shake = AnimationController(
+        duration: const Duration(milliseconds: 520), vsync: this);
     _offset = TweenSequence([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: -8.0), weight: 15),
-      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0),  weight: 15),
-      TweenSequenceItem(tween: Tween(begin: 8.0, end: -5.0),  weight: 15),
-      TweenSequenceItem(tween: Tween(begin: -5.0, end: 5.0),  weight: 15),
-      TweenSequenceItem(tween: Tween(begin: 5.0, end: -2.0),  weight: 15),
-      TweenSequenceItem(tween: Tween(begin: -2.0, end: 2.0),  weight: 15),
-      TweenSequenceItem(tween: Tween(begin: 2.0, end: 0.0),   weight: 10),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: -5.0), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: -5.0, end: 5.0), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 5.0, end: -2.0), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: -2.0, end: 2.0), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 2.0, end: 0.0), weight: 10),
     ]).animate(_shake);
   }
 
@@ -46,14 +48,25 @@ class _PinDotsState extends State<_PinDots> with SingleTickerProviderStateMixin 
   }
 
   @override
-  void dispose() { _shake.dispose(); super.dispose(); }
+  void dispose() {
+    _shake.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isError   = widget.state == _PinState.error;
+    final isError = widget.state == _PinState.error;
     final isSuccess = widget.state == _PinState.success;
-    final col = isSuccess ? AppColors.score5 : isError ? AppColors.score1 : AppColors.indigo;
-    final glow = isSuccess ? const Color(0x8D34D399) : isError ? Colors.transparent : const Color(0x8D818CF8);
+    final col = isSuccess
+        ? AppColors.score5
+        : isError
+            ? AppColors.score1
+            : AppColors.indigo;
+    final glow = isSuccess
+        ? const Color(0x8D34D399)
+        : isError
+            ? Colors.transparent
+            : const Color(0x8D818CF8);
 
     return AnimatedBuilder(
       animation: _offset,
@@ -66,13 +79,16 @@ class _PinDotsState extends State<_PinDots> with SingleTickerProviderStateMixin 
         children: List.generate(_pinLength, (i) {
           final on = i < widget.filled;
           return Container(
-            width: 12, height: 12,
+            width: 12,
+            height: 12,
             margin: const EdgeInsets.symmetric(horizontal: 9),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: on ? col : Colors.transparent,
               border: on ? null : Border.all(color: context.rrB7, width: 1.5),
-              boxShadow: on && !isError ? [BoxShadow(color: glow, blurRadius: 10)] : [],
+              boxShadow: on && !isError
+                  ? [BoxShadow(color: glow, blurRadius: 10)]
+                  : [],
             ),
           );
         }),
@@ -83,7 +99,8 @@ class _PinDotsState extends State<_PinDots> with SingleTickerProviderStateMixin 
 
 // ── KeypadBtn ──────────────────────────────────────────────────────────────
 class _KeypadBtn extends StatefulWidget {
-  const _KeypadBtn({required this.child, required this.onTap, this.disabled = false});
+  const _KeypadBtn(
+      {required this.child, required this.onTap, this.disabled = false});
   final Widget child;
   final VoidCallback onTap;
   final bool disabled;
@@ -101,18 +118,27 @@ class _KeypadBtnState extends State<_KeypadBtn> {
       child: Opacity(
         opacity: widget.disabled ? 0.45 : 1.0,
         child: GestureDetector(
-          onTapDown: widget.disabled ? null : (_) => setState(() => _pressed = true),
-          onTapUp:   widget.disabled ? null : (_) { setState(() => _pressed = false); widget.onTap(); },
+          onTapDown:
+              widget.disabled ? null : (_) => setState(() => _pressed = true),
+          onTapUp: widget.disabled
+              ? null
+              : (_) {
+                  setState(() => _pressed = false);
+                  widget.onTap();
+                },
           onTapCancel: () => setState(() => _pressed = false),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 9),
             child: Center(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 75),
-                width: 74, height: 74,
+                width: 74,
+                height: 74,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _pressed ? Colors.white.withValues(alpha: 0.07) : Colors.transparent,
+                  color: _pressed
+                      ? Colors.white.withValues(alpha: 0.07)
+                      : Colors.transparent,
                 ),
                 child: Center(child: widget.child),
               ),
@@ -126,7 +152,8 @@ class _KeypadBtnState extends State<_KeypadBtn> {
 
 // ── Keypad ─────────────────────────────────────────────────────────────────
 class _Keypad extends StatelessWidget {
-  const _Keypad({required this.onDigit, required this.onDelete, required this.disabled});
+  const _Keypad(
+      {required this.onDigit, required this.onDelete, required this.disabled});
   final ValueChanged<String> onDigit;
   final VoidCallback onDelete;
   final bool disabled;
@@ -135,37 +162,44 @@ class _Keypad extends StatelessWidget {
     ['1', '2', '3'],
     ['4', '5', '6'],
     ['7', '8', '9'],
-    ['',  '0', 'del'],
+    ['', '0', 'del'],
   ];
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: _rows.map((row) => Row(
-        children: row.map((key) {
-          if (key == '') return const Expanded(child: SizedBox());
-          if (key == 'del') {
-            return _KeypadBtn(
-              onTap: onDelete,
-              disabled: disabled,
-              child: IconDelete(size: 21, color: context.rrT5),
-            );
-          }
-          return _KeypadBtn(
-            onTap: () => onDigit(key),
-            disabled: disabled,
-            child: Text(key,
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, color: context.rrT1, height: 1)),
-          );
-        }).toList(),
-      )).toList(),
+      children: _rows
+          .map((row) => Row(
+                children: row.map((key) {
+                  if (key == '') return const Expanded(child: SizedBox());
+                  if (key == 'del') {
+                    return _KeypadBtn(
+                      onTap: onDelete,
+                      disabled: disabled,
+                      child: IconDelete(size: 21, color: context.rrT5),
+                    );
+                  }
+                  return _KeypadBtn(
+                    onTap: () => onDigit(key),
+                    disabled: disabled,
+                    child: Text(key,
+                        style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w300,
+                            color: context.rrT1,
+                            height: 1)),
+                  );
+                }).toList(),
+              ))
+          .toList(),
     );
   }
 }
 
 // ── PinScreen ──────────────────────────────────────────────────────────────
 class PinScreen extends ConsumerStatefulWidget {
-  const PinScreen({super.key, required this.onUnlocked, required this.onSetupNew});
+  const PinScreen(
+      {super.key, required this.onUnlocked, required this.onSetupNew});
   final VoidCallback onUnlocked;
   final VoidCallback onSetupNew;
 
@@ -186,7 +220,11 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         setState(() => _state = _PinState.error);
         Future.delayed(const Duration(milliseconds: 750), () {
           if (!mounted) return;
-          setState(() { _pin = ''; _state = _PinState.idle; _attempt = 1; });
+          setState(() {
+            _pin = '';
+            _state = _PinState.idle;
+            _attempt = 1;
+          });
         });
       } else {
         setState(() => _state = _PinState.success);
@@ -207,7 +245,8 @@ class _PinScreenState extends ConsumerState<PinScreen> {
 
   void _handleDelete() {
     if (_state != _PinState.idle) return;
-    setState(() => _pin = _pin.isEmpty ? '' : _pin.substring(0, _pin.length - 1));
+    setState(
+        () => _pin = _pin.isEmpty ? '' : _pin.substring(0, _pin.length - 1));
   }
 
   void _useBiometrics() {
@@ -238,26 +277,41 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                       children: [
                         const SizedBox(height: 32),
                         Text('READINESS',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500,
-                              color: context.rrT7, letterSpacing: 0.12)),
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: context.rrT7,
+                                letterSpacing: 0.12)),
                         const SizedBox(height: 24),
                         // Avatar
                         Container(
-                          width: 56, height: 56,
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.indigo.withValues(alpha: 0.08),
-                            border: Border.all(color: AppColors.indigo.withValues(alpha: 0.20), width: 1.5),
+                            border: Border.all(
+                                color: AppColors.indigo.withValues(alpha: 0.20),
+                                width: 1.5),
                           ),
                           child: const Center(
                             child: Text('F',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.indigo)),
+                                style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.indigo)),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text('Welcome back', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: context.rrT2)),
+                        Text('Welcome back',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                                color: context.rrT2)),
                         const SizedBox(height: 4),
-                        Text('Foxtrot-42', style: TextStyle(fontSize: 14, color: context.rrT5)),
+                        Text('Foxtrot-42',
+                            style:
+                                TextStyle(fontSize: 14, color: context.rrT5)),
                         const SizedBox(height: 32),
                         _PinDots(filled: _pin.length, state: _state),
                         const SizedBox(height: 16),
@@ -269,7 +323,10 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                     ),
                   ),
                   // Keypad
-                  _Keypad(onDigit: _handleDigit, onDelete: _handleDelete, disabled: disabled),
+                  _Keypad(
+                      onDigit: _handleDigit,
+                      onDelete: _handleDelete,
+                      disabled: disabled),
                   // Biometrics + setup
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -281,7 +338,9 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                           children: [
                             IconFingerprint(size: 28, color: context.rrT6),
                             const SizedBox(height: 6),
-                            Text('Use biometrics', style: TextStyle(fontSize: 12, color: context.rrT5)),
+                            Text('Use biometrics',
+                                style: TextStyle(
+                                    fontSize: 12, color: context.rrT5)),
                           ],
                         ),
                       ),
@@ -292,7 +351,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                     child: GestureDetector(
                       onTap: widget.onSetupNew,
                       child: Text('New device? Set up this device',
-                        style: TextStyle(fontSize: 11, color: context.rrT7)),
+                          style: TextStyle(fontSize: 11, color: context.rrT7)),
                     ),
                   ),
                 ],
@@ -306,10 +365,17 @@ class _PinScreenState extends ConsumerState<PinScreen> {
 
   Widget _stateLabel(BuildContext context) {
     switch (_state) {
-      case _PinState.error:    return Text('Incorrect PIN — try again', style: TextStyle(fontSize: 13, color: AppColors.score1));
-      case _PinState.checking: return Text('Verifying…', style: TextStyle(fontSize: 13, color: context.rrT6));
-      case _PinState.success:  return Text('Unlocked', style: const TextStyle(fontSize: 13, color: AppColors.score5));
-      case _PinState.idle:     return const SizedBox.shrink();
+      case _PinState.error:
+        return const Text('Incorrect PIN — try again',
+            style: TextStyle(fontSize: 13, color: AppColors.score1));
+      case _PinState.checking:
+        return Text('Verifying…',
+            style: TextStyle(fontSize: 13, color: context.rrT6));
+      case _PinState.success:
+        return const Text('Unlocked',
+            style: TextStyle(fontSize: 13, color: AppColors.score5));
+      case _PinState.idle:
+        return const SizedBox.shrink();
     }
   }
 }

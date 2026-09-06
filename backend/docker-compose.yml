@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: sainik_saathi_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:dev_password_sih2026@db:5432/sainik_saathi
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./app:/app/app   # hot-reload in dev
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:16-alpine
+    container_name: sainik_saathi_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: sainik_saathi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev_password_sih2026
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sainik_saathi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: sainik_saathi_redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:

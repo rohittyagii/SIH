@@ -13,11 +13,14 @@ class _SectionLabel extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Text(text.toUpperCase(),
-      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500,
-          color: context.rrT6, letterSpacing: 0.07)),
-  );
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text.toUpperCase(),
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: context.rrT6,
+                letterSpacing: 0.07)),
+      );
 }
 
 class _SettingRow extends StatelessWidget {
@@ -42,13 +45,17 @@ class _SettingRow extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: TextStyle(fontSize: 14, color: danger ? AppColors.score1 : context.rrT2)),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 14,
+                    color: danger ? AppColors.score1 : context.rrT2)),
             if (value.isNotEmpty || arrow)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (value.isNotEmpty)
-                    Text(value, style: TextStyle(fontSize: 13, color: context.rrT4)),
+                    Text(value,
+                        style: TextStyle(fontSize: 13, color: context.rrT4)),
                   if (arrow) IconChevronRight(size: 13, color: context.rrT6),
                 ],
               ),
@@ -62,7 +69,11 @@ class _SettingRow extends StatelessWidget {
 // ── SettingsScreen ─────────────────────────────────────────────────────────
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key, required this.isDark, required this.onThemeToggle, required this.onLogout});
+  const SettingsScreen(
+      {super.key,
+      required this.isDark,
+      required this.onThemeToggle,
+      required this.onLogout});
   final bool isDark;
   final VoidCallback onThemeToggle;
   final VoidCallback onLogout;
@@ -77,8 +88,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _reminder = true;
   bool _syncAlerts = true;
   bool _weeklySummary = false;
-  String _logout    = 'idle';   // 'idle' | 'confirm'
-  String _deactivate = 'idle';  // 'idle' | 'confirm'
+  String _logout = 'idle'; // 'idle' | 'confirm'
+  String _deactivate = 'idle'; // 'idle' | 'confirm'
 
   Language get _currentLang => languages.firstWhere((l) => l.code == _lang);
 
@@ -92,11 +103,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
+              Text('Settings',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: context.rrT1)),
               const SizedBox(height: 24),
 
               // ── Appearance ─────────────────────────────────────────────
-              _SectionLabel('Appearance'),
+              const _SectionLabel('Appearance'),
               RrCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,10 +122,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Theme', style: TextStyle(fontSize: 14, color: context.rrT2)),
+                            Text('Theme',
+                                style: TextStyle(
+                                    fontSize: 14, color: context.rrT2)),
                             const SizedBox(height: 2),
-                            Text(widget.isDark ? 'Low-light interface' : 'High-contrast interface',
-                              style: TextStyle(fontSize: 12, color: context.rrT4)),
+                            Text(
+                                widget.isDark
+                                    ? 'Low-light interface'
+                                    : 'High-contrast interface',
+                                style: TextStyle(
+                                    fontSize: 12, color: context.rrT4)),
                           ],
                         ),
                       ],
@@ -136,19 +157,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Your account ────────────────────────────────────────────
-              _SectionLabel('Your account'),
-              RrCard(
+              const _SectionLabel('Your account'),
+              const RrCard(
                 child: Column(
-                  children: const [
-                    _SettingRow(label: 'Your ID',           value: 'Foxtrot-42', first: true),
-                    _SettingRow(label: 'PIN & biometrics',  value: 'Configured',  arrow: true),
+                  children: [
+                    _SettingRow(
+                        label: 'Your ID', value: 'Foxtrot-42', first: true),
+                    _SettingRow(
+                        label: 'PIN & biometrics',
+                        value: 'Configured',
+                        arrow: true),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
               // ── Language & region ───────────────────────────────────────
-              _SectionLabel('Language & region'),
+              const _SectionLabel('Language & region'),
               RrCard(
                 child: Column(
                   children: [
@@ -164,9 +189,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Language', style: TextStyle(fontSize: 14, color: context.rrT2)),
-                                  Text('${_currentLang.label} · ${_currentLang.native}',
-                                    style: TextStyle(fontSize: 12, color: context.rrT4)),
+                                  Text('Language',
+                                      style: TextStyle(
+                                          fontSize: 14, color: context.rrT2)),
+                                  Text(
+                                      '${_currentLang.label} · ${_currentLang.native}',
+                                      style: TextStyle(
+                                          fontSize: 12, color: context.rrT4)),
                                 ],
                               ),
                             ],
@@ -174,7 +203,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           AnimatedRotation(
                             turns: _langOpen ? 0.25 : 0,
                             duration: const Duration(milliseconds: 200),
-                            child: IconChevronRight(size: 13, color: context.rrT6),
+                            child:
+                                IconChevronRight(size: 13, color: context.rrT6),
                           ),
                         ],
                       ),
@@ -184,34 +214,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ...languages.map((l) {
                         final selected = _lang == l.code;
                         return GestureDetector(
-                          onTap: () => setState(() { _lang = l.code; _langOpen = false; }),
+                          onTap: () => setState(() {
+                            _lang = l.code;
+                            _langOpen = false;
+                          }),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 120),
                             margin: const EdgeInsets.only(bottom: 2),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 9),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(9),
-                              color: selected ? AppColors.indigo.withValues(alpha: 0.10) : Colors.transparent,
+                              color: selected
+                                  ? AppColors.indigo.withValues(alpha: 0.10)
+                                  : Colors.transparent,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(children: [
                                   Text(l.label,
-                                    style: TextStyle(fontSize: 13, fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-                                        color: selected ? context.rrT2 : context.rrT2b)),
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: selected
+                                              ? FontWeight.w500
+                                              : FontWeight.w400,
+                                          color: selected
+                                              ? context.rrT2
+                                              : context.rrT2b)),
                                   if (l.native != 'English') ...[
                                     const SizedBox(width: 8),
-                                    Text(l.native, style: TextStyle(fontSize: 12, color: context.rrT4)),
+                                    Text(l.native,
+                                        style: TextStyle(
+                                            fontSize: 12, color: context.rrT4)),
                                   ],
                                 ]),
                                 if (selected)
                                   Container(
-                                    width: 7, height: 7,
+                                    width: 7,
+                                    height: 7,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: AppColors.indigo,
-                                      boxShadow: [BoxShadow(color: AppColors.indigo.withValues(alpha: 0.6), blurRadius: 6)],
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: AppColors.indigo
+                                                .withValues(alpha: 0.6),
+                                            blurRadius: 6)
+                                      ],
                                     ),
                                   ),
                               ],
@@ -226,27 +276,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Notifications ───────────────────────────────────────────
-              _SectionLabel('Notifications'),
+              const _SectionLabel('Notifications'),
               RrCard(
                 child: Column(
                   children: [
-                    _notifRow(context, IconBell(size: 14, color: _reminder ? AppColors.indigo : context.rrT6),
-                      'Check-in reminder', '07:30 daily', _reminder, () => setState(() => _reminder = !_reminder), true),
-                    _notifRow(context, IconCloudQueue(size: 14, color: _syncAlerts ? AppColors.indigo : context.rrT6),
-                      'Sync alerts', 'When offline data syncs', _syncAlerts, () => setState(() => _syncAlerts = !_syncAlerts), false),
-                    _notifRow(context, IconCalendar(size: 14, color: _weeklySummary ? AppColors.indigo : context.rrT6),
-                      'Weekly summary', 'Mondays at 08:00', _weeklySummary, () => setState(() => _weeklySummary = !_weeklySummary), false),
+                    _notifRow(
+                        context,
+                        IconBell(
+                            size: 14,
+                            color: _reminder ? AppColors.indigo : context.rrT6),
+                        'Check-in reminder',
+                        '07:30 daily',
+                        _reminder,
+                        () => setState(() => _reminder = !_reminder),
+                        true),
+                    _notifRow(
+                        context,
+                        IconCloudQueue(
+                            size: 14,
+                            color:
+                                _syncAlerts ? AppColors.indigo : context.rrT6),
+                        'Sync alerts',
+                        'When offline data syncs',
+                        _syncAlerts,
+                        () => setState(() => _syncAlerts = !_syncAlerts),
+                        false),
+                    _notifRow(
+                        context,
+                        IconCalendar(
+                            size: 14,
+                            color: _weeklySummary
+                                ? AppColors.indigo
+                                : context.rrT6),
+                        'Weekly summary',
+                        'Mondays at 08:00',
+                        _weeklySummary,
+                        () => setState(() => _weeklySummary = !_weeklySummary),
+                        false),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
               // ── Data & privacy ──────────────────────────────────────────
-              _SectionLabel('Data & privacy'),
-              RrCard(
-                child: const Column(
+              const _SectionLabel('Data & privacy'),
+              const RrCard(
+                child: Column(
                   children: [
-                    _SettingRow(label: 'Data handling',      arrow: true, first: true),
+                    _SettingRow(
+                        label: 'Data handling', arrow: true, first: true),
                     _SettingRow(label: 'Delete all my data', danger: true),
                   ],
                 ),
@@ -254,22 +332,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Session ─────────────────────────────────────────────────
-              _SectionLabel('Session'),
-              RrCard(child: _logout == 'idle' ? _logoutIdle(context) : _logoutConfirm(context)),
+              const _SectionLabel('Session'),
+              RrCard(
+                  child: _logout == 'idle'
+                      ? _logoutIdle(context)
+                      : _logoutConfirm(context)),
               const SizedBox(height: 20),
 
               // ── Device ──────────────────────────────────────────────────
-              _SectionLabel('Device'),
-              RrCard(child: _deactivate == 'idle' ? _deactivateIdle(context) : _deactivateConfirm(context)),
+              const _SectionLabel('Device'),
+              RrCard(
+                  child: _deactivate == 'idle'
+                      ? _deactivateIdle(context)
+                      : _deactivateConfirm(context)),
               const SizedBox(height: 20),
 
               // ── About ────────────────────────────────────────────────────
-              _SectionLabel('About'),
-              RrCard(
-                child: const Column(
+              const _SectionLabel('About'),
+              const RrCard(
+                child: Column(
                   children: [
-                    _SettingRow(label: 'App version',     value: '1.0.0',       first: true),
-                    _SettingRow(label: 'Unit programme',  value: 'Bravo Wing'),
+                    _SettingRow(
+                        label: 'App version', value: '1.0.0', first: true),
+                    _SettingRow(label: 'Unit programme', value: 'Bravo Wing'),
                   ],
                 ),
               ),
@@ -295,12 +380,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (t == 'dark') IconMoon(size: 14, color: active ? context.rrT2 : context.rrT6)
-              else IconSun(size: 14, color: active ? context.rrT2 : context.rrT6),
+              if (t == 'dark')
+                IconMoon(size: 14, color: active ? context.rrT2 : context.rrT6)
+              else
+                IconSun(size: 14, color: active ? context.rrT2 : context.rrT6),
               const SizedBox(width: 7),
               Text(label,
-                style: TextStyle(fontSize: 13, fontWeight: active ? FontWeight.w500 : FontWeight.w400,
-                    color: active ? context.rrT2 : context.rrT4)),
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                      color: active ? context.rrT2 : context.rrT4)),
             ],
           ),
         ),
@@ -308,7 +397,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _notifRow(BuildContext context, Widget icon, String label, String sub, bool on, VoidCallback toggle, bool first) {
+  Widget _notifRow(BuildContext context, Widget icon, String label, String sub,
+      bool on, VoidCallback toggle, bool first) {
     return Column(
       children: [
         if (!first) Divider(color: context.rrDv, height: 26),
@@ -321,8 +411,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: TextStyle(fontSize: 14, color: context.rrT2)),
-                  Text(sub, style: TextStyle(fontSize: 12, color: context.rrT4)),
+                  Text(label,
+                      style: TextStyle(fontSize: 14, color: context.rrT2)),
+                  Text(sub,
+                      style: TextStyle(fontSize: 12, color: context.rrT4)),
                 ],
               ),
             ]),
@@ -334,101 +426,141 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _logoutIdle(BuildContext context) => GestureDetector(
-    onTap: () => setState(() => _logout = 'confirm'),
-    child: Row(children: [
-      const IconLogOut(size: 15, color: Color(0xFFEF6B6B)),
-      const SizedBox(width: 10),
-      Text('Sign out', style: TextStyle(fontSize: 14, color: context.rrT2)),
-    ]),
-  );
+        onTap: () => setState(() => _logout = 'confirm'),
+        child: Row(children: [
+          const IconLogOut(size: 15, color: Color(0xFFEF6B6B)),
+          const SizedBox(width: 10),
+          Text('Sign out', style: TextStyle(fontSize: 14, color: context.rrT2)),
+        ]),
+      );
 
   Widget _logoutConfirm(BuildContext context) => Column(
-    children: [
-      Container(
-        padding: const EdgeInsets.all(14),
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: const Color(0xFFEF6B6B).withValues(alpha: 0.07),
-          border: Border.all(color: const Color(0xFFEF6B6B).withValues(alpha: 0.20)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(padding: EdgeInsets.only(top: 1), child: IconLogOut(size: 14, color: Color(0xFFEF6B6B))),
-            const SizedBox(width: 10),
-            Expanded(child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFFEF6B6B).withValues(alpha: 0.07),
+              border: Border.all(
+                  color: const Color(0xFFEF6B6B).withValues(alpha: 0.20)),
+            ),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Sign out of READINESS?',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFFEF6B6B))),
-                const SizedBox(height: 4),
-                Text('The app will lock. Your data stays on this device — sign back in with your PIN to continue.',
-                  style: TextStyle(fontSize: 12, color: context.rrT5, height: 1.6)),
+                const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: IconLogOut(size: 14, color: Color(0xFFEF6B6B))),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Sign out of READINESS?',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFEF6B6B))),
+                    const SizedBox(height: 4),
+                    Text(
+                        'The app will lock. Your data stays on this device — sign back in with your PIN to continue.',
+                        style: TextStyle(
+                            fontSize: 12, color: context.rrT5, height: 1.6)),
+                  ],
+                )),
               ],
-            )),
-          ],
-        ),
-      ),
-      Row(children: [
-        Expanded(child: _actionBtn(context, 'Cancel', () => setState(() => _logout = 'idle'), false)),
-        const SizedBox(width: 10),
-        Expanded(flex: 2, child: _actionBtn(context, 'Sign out', widget.onLogout, true, danger: true)),
-      ]),
-    ],
-  );
+            ),
+          ),
+          Row(children: [
+            Expanded(
+                child: _actionBtn(context, 'Cancel',
+                    () => setState(() => _logout = 'idle'), false)),
+            const SizedBox(width: 10),
+            Expanded(
+                flex: 2,
+                child: _actionBtn(context, 'Sign out', widget.onLogout, true,
+                    danger: true)),
+          ]),
+        ],
+      );
 
   Widget _deactivateIdle(BuildContext context) => GestureDetector(
-    onTap: () => setState(() => _deactivate = 'confirm'),
-    child: Row(children: [
-      const IconAlertTriangle(size: 14, color: Color(0xFFC07830)),
-      const SizedBox(width: 10),
-      Text('Deactivate this device', style: TextStyle(fontSize: 14, color: context.rrT2)),
-    ]),
-  );
+        onTap: () => setState(() => _deactivate = 'confirm'),
+        child: Row(children: [
+          const IconAlertTriangle(size: 14, color: Color(0xFFC07830)),
+          const SizedBox(width: 10),
+          Text('Deactivate this device',
+              style: TextStyle(fontSize: 14, color: context.rrT2)),
+        ]),
+      );
 
   Widget _deactivateConfirm(BuildContext context) => Column(
-    children: [
-      Container(
-        padding: const EdgeInsets.all(14),
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: const Color(0xFFC07830).withValues(alpha: 0.08),
-          border: Border.all(color: const Color(0xFFC07830).withValues(alpha: 0.22)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(padding: EdgeInsets.only(top: 1), child: IconAlertTriangle(size: 14, color: Color(0xFFC07830))),
-            const SizedBox(width: 10),
-            Expanded(child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFFC07830).withValues(alpha: 0.08),
+              border: Border.all(
+                  color: const Color(0xFFC07830).withValues(alpha: 0.22)),
+            ),
+            child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Deactivate this device?',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFFC4A870))),
-                const SizedBox(height: 4),
-                Text("This will unlink the device from your unit. Your check-in history will be removed locally. You'll need a new activation code to use the app again.",
-                  style: TextStyle(fontSize: 12, color: const Color(0xFF7A8A6A), height: 1.6)),
+                Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child:
+                        IconAlertTriangle(size: 14, color: Color(0xFFC07830))),
+                SizedBox(width: 10),
+                Expanded(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Deactivate this device?',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFC4A870))),
+                    SizedBox(height: 4),
+                    Text(
+                        "This will unlink the device from your unit. Your check-in history will be removed locally. You'll need a new activation code to use the app again.",
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF7A8A6A),
+                            height: 1.6)),
+                  ],
+                )),
               ],
-            )),
-          ],
-        ),
-      ),
-      Row(children: [
-        Expanded(child: _actionBtn(context, 'Cancel', () => setState(() => _deactivate = 'idle'), false)),
-        const SizedBox(width: 10),
-        Expanded(flex: 2, child: _actionBtn(context, 'Deactivate', () {}, false, amber: true)),
-      ]),
-    ],
-  );
+            ),
+          ),
+          Row(children: [
+            Expanded(
+                child: _actionBtn(context, 'Cancel',
+                    () => setState(() => _deactivate = 'idle'), false)),
+            const SizedBox(width: 10),
+            Expanded(
+                flex: 2,
+                child: _actionBtn(context, 'Deactivate', () {}, false,
+                    amber: true)),
+          ]),
+        ],
+      );
 
-  Widget _actionBtn(BuildContext context, String label, VoidCallback onTap, bool isPrimary,
+  Widget _actionBtn(
+      BuildContext context, String label, VoidCallback onTap, bool isPrimary,
       {bool danger = false, bool amber = false}) {
     Color bg, fg;
-    if (danger) { bg = const Color(0xFFEF6B6B).withValues(alpha: 0.14); fg = const Color(0xFFEF6B6B); }
-    else if (amber) { bg = const Color(0xFFC07830).withValues(alpha: 0.18); fg = const Color(0xFFC4A870); }
-    else { bg = context.rrDv; fg = context.rrT2b; }
+    if (danger) {
+      bg = const Color(0xFFEF6B6B).withValues(alpha: 0.14);
+      fg = const Color(0xFFEF6B6B);
+    } else if (amber) {
+      bg = const Color(0xFFC07830).withValues(alpha: 0.18);
+      fg = const Color(0xFFC4A870);
+    } else {
+      bg = context.rrDv;
+      fg = context.rrT2b;
+    }
 
     return GestureDetector(
       onTap: onTap,
@@ -437,13 +569,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: bg,
-          border: (danger || amber) ? Border.all(color: danger
-              ? const Color(0xFFEF6B6B).withValues(alpha: 0.28)
-              : const Color(0xFFC07830).withValues(alpha: 0.30)) : null,
+          border: (danger || amber)
+              ? Border.all(
+                  color: danger
+                      ? const Color(0xFFEF6B6B).withValues(alpha: 0.28)
+                      : const Color(0xFFC07830).withValues(alpha: 0.30))
+              : null,
         ),
         child: Center(
           child: Text(label,
-            style: TextStyle(fontSize: 13, fontWeight: danger || amber ? FontWeight.w600 : FontWeight.w500, color: fg)),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      danger || amber ? FontWeight.w600 : FontWeight.w500,
+                  color: fg)),
         ),
       ),
     );
