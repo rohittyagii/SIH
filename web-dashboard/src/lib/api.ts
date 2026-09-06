@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://sainiksaathi-api.onrender.com";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -19,10 +19,16 @@ export async function apiFetch<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    console.warn("Network or CORS error in fetch:", err.message);
+    throw err;
+  }
 
   if (res.status === 401) {
     if (typeof window !== "undefined") {

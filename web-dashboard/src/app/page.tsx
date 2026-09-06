@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,11 @@ export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  if (isAuthenticated) {
-    router.push("/overview");
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      window.location.href = "/overview";
+    }
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +26,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(username, password);
-      router.push("/overview");
+      window.location.href = "/overview";
     } catch (err: any) {
       setError(err.message || "Login failed");
-    } finally {
       setLoading(false);
     }
   };
