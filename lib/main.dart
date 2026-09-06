@@ -15,6 +15,7 @@ import 'screens/settings_screen.dart';
 import 'data/seed.dart';
 import 'services/checkin_service.dart';
 import 'services/sync_service.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

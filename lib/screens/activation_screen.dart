@@ -5,7 +5,6 @@ import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../services/auth_service.dart';
-import '../services/api_client.dart';
 
 // ── ActivationScreen ────────────────────────────────────────────────────────
 class ActivationScreen extends ConsumerStatefulWidget {
@@ -61,7 +60,6 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final progress = _raw.length / 8;
     return Scaffold(
       backgroundColor: context.rrBg,
       body: SafeArea(

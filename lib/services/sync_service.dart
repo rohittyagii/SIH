@@ -28,7 +28,7 @@ class SyncService {
 
   Future<void> syncIfOnline() async {
     final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) return;
+    if (connectivityResult.contains(ConnectivityResult.none)) return;
 
     if (_offlineBox.isEmpty) return;
 

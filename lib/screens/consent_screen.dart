@@ -19,8 +19,9 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
 
   Widget _assuranceIcon(Assurance a) {
     if (a.color == AppColors.indigo) return IconLock(size: 16, color: a.color);
-    if (a.color == const Color(0xFF56B4E9))
+    if (a.color == const Color(0xFF56B4E9)) {
       return IconEyeOff(size: 16, color: a.color);
+    }
     return IconCircleCheck(size: 16, color: a.color);
   }
 
