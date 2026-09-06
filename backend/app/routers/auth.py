@@ -55,16 +55,19 @@ async def get_me(current_user: CurrentUser, db: DbSession):
         select(User).where(User.id == current_user.id)
     )
     user = result.scalar_one()
-    # Load unit separately to get name
     from app.models.user import Unit
-    unit_res = await db.execute(select(Unit).where(Unit.id == user.unit_id))
-    unit = unit_res.scalar_one_or_none()
+    unit_name = "Command/HQ"
+    if user.unit_id:
+        unit_res = await db.execute(select(Unit).where(Unit.id == user.unit_id))
+        unit = unit_res.scalar_one_or_none()
+        if unit:
+            unit_name = unit.name
 
     return UserProfile(
         id=str(user.id),
         username=user.username,
         role=user.role.value,
-        unit=unit.name if unit else "Unknown",
+        unit=unit_name,
         full_name=user.full_name,
         service_id=user.service_id,
     )
