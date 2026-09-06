@@ -1,6 +1,7 @@
 from __future__ import annotations
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from app.config import get_settings
 
@@ -10,8 +11,10 @@ engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    # pgBouncer transaction-mode requires statement_cache_size=0
+    # and NullPool so SQLAlchemy doesn't hold connections across requests
+    connect_args={"statement_cache_size": 0},
+    poolclass=NullPool,
 )
 
 AsyncSessionLocal = async_sessionmaker(
