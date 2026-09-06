@@ -11,10 +11,8 @@ engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     pool_pre_ping=True,
-    # pgBouncer transaction-mode requires prepared_statement_cache_size=0 for asyncpg
-    # and NullPool so SQLAlchemy doesn't hold connections across requests
-    connect_args={"prepared_statement_cache_size": 0},
-    poolclass=NullPool,
+    pool_size=10,
+    max_overflow=20,
 )
 
 AsyncSessionLocal = async_sessionmaker(
