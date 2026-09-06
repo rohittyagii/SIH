@@ -1,16 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io';
-
-// Use 10.0.2.2 for Android emulator, localhost for iOS simulator.
-final _baseUrl = Platform.isAndroid ? 'http://10.0.2.2:8000/api/v1' : 'http://localhost:8000/api/v1';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(const FlutterSecureStorage());
 });
 
 class ApiClient {
+  static const String _baseUrl = 'https://sainiksaathi-api.onrender.com/api/v1';
   final FlutterSecureStorage _storage;
   late final Dio _dio;
   
