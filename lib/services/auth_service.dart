@@ -44,4 +44,11 @@ class AuthService {
     } catch (_) {}
     await _api.clearToken();
   }
+
+  Future<void> deleteMyData() async {
+    try {
+      await _api.dio.delete('/users/me/data');
+    } catch (_) {}
+    await _api.clearToken();
+  }
 }

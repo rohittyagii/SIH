@@ -6,7 +6,9 @@ import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/toggle.dart';
 import '../services/calendar_service.dart';
+import '../services/auth_service.dart';
 import '../providers/app_state.dart';
+import 'data_handling_screen.dart';
 
 // ── Shared sub-widgets ─────────────────────────────────────────────────────
 
@@ -32,36 +34,42 @@ class _SettingRow extends StatelessWidget {
     this.arrow = false,
     this.danger = false,
     this.first = false,
+    this.onTap,
   });
   final String label;
   final String value;
   final bool arrow;
   final bool danger;
   final bool first;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         if (!first) Divider(color: context.rrDv, height: 26),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: 14,
-                    color: danger ? AppColors.score1 : context.rrT2)),
-            if (value.isNotEmpty || arrow)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (value.isNotEmpty)
-                    Text(value,
-                        style: TextStyle(fontSize: 13, color: context.rrT4)),
-                  if (arrow) IconChevronRight(size: 13, color: context.rrT6),
-                ],
-              ),
-          ],
+        GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: danger ? AppColors.score1 : context.rrT2)),
+              if (value.isNotEmpty || arrow)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (value.isNotEmpty)
+                      Text(value,
+                          style: TextStyle(fontSize: 13, color: context.rrT4)),
+                    if (arrow) IconChevronRight(size: 13, color: context.rrT6),
+                  ],
+                ),
+            ],
+          ),
         ),
       ],
     );
@@ -93,6 +101,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _weeklySummary = false;
   String _logout = 'idle'; // 'idle' | 'confirm'
   String _deactivate = 'idle'; // 'idle' | 'confirm'
+  String _deleteData = 'idle'; // 'idle' | 'confirm'
 
   Language get _currentLang => languages.firstWhere((l) => l.code == _lang);
 
@@ -360,14 +369,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // ── Data & privacy ──────────────────────────────────────────
               const _SectionLabel('Data & privacy'),
-              const RrCard(
-                child: Column(
-                  children: [
-                    _SettingRow(
-                        label: 'Data handling', arrow: true, first: true),
-                    _SettingRow(label: 'Delete all my data', danger: true),
-                  ],
-                ),
+              RrCard(
+                child: _deleteData == 'idle'
+                    ? Column(
+                        children: [
+                          _SettingRow(
+                            label: 'Data handling',
+                            arrow: true,
+                            first: true,
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => const DataHandlingScreen(),
+                              ));
+                            },
+                          ),
+                          _SettingRow(
+                            label: 'Delete all my data',
+                            danger: true,
+                            onTap: () => setState(() => _deleteData = 'confirm'),
+                          ),
+                        ],
+                      )
+                    : _deleteDataConfirm(context),
               ),
               const SizedBox(height: 20),
 
@@ -583,6 +606,63 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 flex: 2,
                 child: _actionBtn(context, 'Deactivate', () {}, false,
                     amber: true)),
+          ]),
+        ],
+      );
+
+  Widget _deleteDataConfirm(BuildContext context) => Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFFEF6B6B).withValues(alpha: 0.07),
+              border: Border.all(
+                  color: const Color(0xFFEF6B6B).withValues(alpha: 0.20)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: IconAlertTriangle(size: 14, color: Color(0xFFEF6B6B))),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Delete all my data?',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFEF6B6B))),
+                    const SizedBox(height: 4),
+                    Text(
+                        'This action is irreversible. All your check-in history, metrics, and assessments will be permanently erased from our servers.',
+                        style: TextStyle(
+                            fontSize: 12, color: context.rrT5, height: 1.6)),
+                  ],
+                )),
+              ],
+            ),
+          ),
+          Row(children: [
+            Expanded(
+                child: _actionBtn(context, 'Cancel',
+                    () => setState(() => _deleteData = 'idle'), false)),
+            const SizedBox(width: 10),
+            Expanded(
+                flex: 2,
+                child: _actionBtn(context, 'Delete Data', () async {
+                  try {
+                    await ref.read(authServiceProvider).deleteMyData();
+                  } catch (_) {}
+                  ref.read(inCheckinProvider.notifier).state = false;
+                  ref.read(submittedProvider.notifier).state = false;
+                  ref.read(tabProvider.notifier).state = AppTab.home;
+                  ref.read(screenProvider.notifier).state = AppScreen.pin;
+                }, true, danger: true)),
           ]),
         ],
       );
