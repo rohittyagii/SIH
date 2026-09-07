@@ -289,7 +289,7 @@ def format_factor(template: str, **kwargs) -> str:
 # ── Main seeding logic ────────────────────────────────────────────────────────
 
 async def seed():
-    engine = create_async_engine(settings.DATABASE_URL, echo=False)
+    engine = create_async_engine(settings.DATABASE_URL, echo=False, connect_args={"statement_cache_size": 0})
     AsyncSession_ = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with AsyncSession_() as session:

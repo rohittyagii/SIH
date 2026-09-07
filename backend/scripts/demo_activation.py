@@ -13,7 +13,7 @@ from app.models.user import Unit, ActivationCode
 
 async def main():
     settings = get_settings()
-    engine = create_async_engine(settings.DATABASE_URL)
+    engine = create_async_engine(settings.DATABASE_URL, connect_args={"statement_cache_size": 0})
     session_maker = async_sessionmaker(engine, class_=AsyncSession)
     
     async with session_maker() as session:
