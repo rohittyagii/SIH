@@ -11,16 +11,26 @@ class HomeScreen extends ConsumerWidget {
     required this.onStartCheckin,
     required this.onTab,
     required this.todayDone,
+    required this.streak,
   });
   final VoidCallback onStartCheckin;
   final ValueChanged<AppTab> onTab;
   final bool todayDone;
+  final int streak;
 
   String get _greeting {
     final h = DateTime.now().hour;
     if (h < 12) return 'Good morning';
     if (h < 17) return 'Good afternoon';
     return 'Good evening';
+  }
+
+  String get _todayLabel {
+    final now = DateTime.now();
+    const days   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
   @override
@@ -66,40 +76,42 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Text('Thursday, 4 Sep 2026',
+                            Text(_todayLabel,
                                 style: TextStyle(
                                     fontSize: 13, color: context.rrT5)),
-                            const SizedBox(width: 10),
-                            Container(
-                                width: 3,
-                                height: 3,
+                            if (streak > 0) ...[
+                              const SizedBox(width: 10),
+                              Container(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: context.rrT7)),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: context.rrT7)),
-                            const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(999),
-                                color: AppColors.indigo.withValues(alpha: 0.10),
-                                border: Border.all(
-                                    color: AppColors.indigo
-                                        .withValues(alpha: 0.20)),
+                                  borderRadius: BorderRadius.circular(999),
+                                  color: AppColors.indigo.withValues(alpha: 0.10),
+                                  border: Border.all(
+                                      color: AppColors.indigo
+                                          .withValues(alpha: 0.20)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const IconFlame(size: 12, color: AppColors.indigo),
+                                    const SizedBox(width: 4),
+                                    Text('Day $streak',
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.indigo)),
+                                  ],
+                                ),
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconFlame(size: 12, color: AppColors.indigo),
-                                  SizedBox(width: 4),
-                                  Text('Day 13',
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.indigo)),
-                                ],
-                              ),
-                            ),
+                            ],
                           ],
                         ),
                       ],

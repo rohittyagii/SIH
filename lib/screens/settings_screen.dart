@@ -5,6 +5,7 @@ import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/toggle.dart';
+import '../services/calendar_service.dart';
 
 // ── Shared sub-widgets ─────────────────────────────────────────────────────
 
@@ -85,13 +86,51 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _lang = 'en-GB';
   bool _langOpen = false;
-  bool _reminder = true;
+  bool _reminder = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 7, minute: 30);
   bool _syncAlerts = true;
   bool _weeklySummary = false;
   String _logout = 'idle'; // 'idle' | 'confirm'
   String _deactivate = 'idle'; // 'idle' | 'confirm'
 
   Language get _currentLang => languages.firstWhere((l) => l.code == _lang);
+
+  String get _reminderLabel {
+    final h = _reminderTime.hour.toString().padLeft(2, '0');
+    final m = _reminderTime.minute.toString().padLeft(2, '0');
+    return '$h:$m daily';
+  }
+
+  Future<void> _toggleReminder() async {
+    final calSvc = ref.read(calendarServiceProvider);
+    if (!_reminder) {
+      // Turn on: pick a time then schedule
+      final picked = await showTimePicker(
+        context: context,
+        initialTime: _reminderTime,
+        builder: (ctx, child) => Theme(
+          data: Theme.of(ctx).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.indigo,
+              onPrimary: Colors.white,
+              surface: Color(0xFF1A2232),
+            ),
+          ),
+          child: child!,
+        ),
+      );
+      if (picked == null) return; // user cancelled
+      setState(() {
+        _reminderTime = picked;
+        _reminder = true;
+      });
+      await calSvc.scheduleReminder(picked);
+    } else {
+      // Turn off: remove
+      setState(() => _reminder = false);
+      await calSvc.removeReminder();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -286,9 +325,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             size: 14,
                             color: _reminder ? AppColors.indigo : context.rrT6),
                         'Check-in reminder',
-                        '07:30 daily',
+                        _reminderLabel,
                         _reminder,
-                        () => setState(() => _reminder = !_reminder),
+                        _toggleReminder,
                         true),
                     _notifRow(
                         context,
@@ -398,7 +437,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _notifRow(BuildContext context, Widget icon, String label, String sub,
-      bool on, VoidCallback toggle, bool first) {
+      bool on, Function() toggle, bool first) {
     return Column(
       children: [
         if (!first) Divider(color: context.rrDv, height: 26),

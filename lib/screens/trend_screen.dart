@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../theme/colors.dart';
 import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
+import '../providers/app_state.dart';
+import '../services/calendar_service.dart';
 
 // ── ResourceList ─────────────────────────────────────────────────────────────
 class _ResourceList extends StatelessWidget {
@@ -175,6 +178,124 @@ class _TrendChart extends StatelessWidget {
   }
 }
 
+// ── Device calendar card ─────────────────────────────────────────────────────
+class _DeviceCalendarCard extends ConsumerStatefulWidget {
+  const _DeviceCalendarCard();
+
+  @override
+  ConsumerState<_DeviceCalendarCard> createState() => _DeviceCalendarCardState();
+}
+
+class _DeviceCalendarCardState extends ConsumerState<_DeviceCalendarCard> {
+  late Future<List<DeviceCalendarEvent>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = ref.read(calendarServiceProvider).fetchUpcomingEvents(days: 30);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RrCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('UPCOMING CALENDAR',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: context.rrT6,
+                      letterSpacing: 0.10)),
+              IconCalendar(size: 12, color: context.rrT6),
+            ],
+          ),
+          const SizedBox(height: 14),
+          FutureBuilder<List<DeviceCalendarEvent>>(
+            future: _future,
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 1.5, color: context.rrT6),
+                    ),
+                  ),
+                );
+              }
+              if (snap.hasError || snap.data == null || snap.data!.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    snap.hasError
+                        ? 'Calendar access denied. Enable in Settings → Privacy.'
+                        : 'No upcoming events in the next 30 days.',
+                    style: TextStyle(fontSize: 12, color: context.rrT5, height: 1.5),
+                  ),
+                );
+              }
+              final events = snap.data!;
+              return Column(
+                children: events.asMap().entries.map((e) {
+                  final i  = e.key;
+                  final ev = e.value;
+                  final dateLabel = DateFormat('EEE, d MMM').format(ev.date);
+                  return Column(
+                    children: [
+                      if (i > 0) Divider(color: context.rrDv, height: 20),
+                      Row(
+                        children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(9),
+                              color: AppColors.indigo.withValues(alpha: 0.08),
+                            ),
+                            child: const Center(
+                              child: IconCalendar(size: 14, color: AppColors.indigo),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(ev.title,
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: context.rrT2),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                const SizedBox(height: 2),
+                                Text('$dateLabel · ${ev.startTime}',
+                                    style: TextStyle(
+                                        fontSize: 11, color: context.rrT5)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── TrendScreen ───────────────────────────────────────────────────────────────
 class TrendScreen extends ConsumerWidget {
   const TrendScreen({super.key, required this.history});
@@ -187,6 +308,8 @@ class TrendScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final streak = ref.watch(streakProvider);
+
     return Scaffold(
       backgroundColor: context.rrBg,
       body: SafeArea(
@@ -196,18 +319,25 @@ class TrendScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Heading row
-              Text('My trend', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
+              Text('My trend',
+                  style: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
               const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Last 7 entries · 13-day streak',
-                    style: TextStyle(fontSize: 13, color: context.rrT4)),
+                  Text(
+                    streak > 0
+                        ? 'Last 7 entries · $streak-day streak'
+                        : 'Last 7 entries',
+                    style: TextStyle(fontSize: 13, color: context.rrT4),
+                  ),
                   Row(
                     children: [
                       IconLock(size: 10, color: context.rrT7),
                       const SizedBox(width: 5),
-                      Text('Visible only to you', style: TextStyle(fontSize: 11, color: context.rrT6)),
+                      Text('Visible only to you',
+                          style: TextStyle(fontSize: 11, color: context.rrT6)),
                     ],
                   ),
                 ],
@@ -222,7 +352,11 @@ class TrendScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('7-day average',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: context.rrT6, letterSpacing: 0.06)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: context.rrT6,
+                            letterSpacing: 0.06)),
                     const SizedBox(height: 16),
                     GridView.count(
                       crossAxisCount: 2,
@@ -232,7 +366,7 @@ class TrendScreen extends ConsumerWidget {
                       crossAxisSpacing: 12,
                       childAspectRatio: 3.5,
                       children: dims.map((d) {
-                        final a = _avg(d.key);
+                        final a   = _avg(d.key);
                         final col = scoreColor(a.round());
                         return Row(
                           children: [
@@ -242,12 +376,19 @@ class TrendScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(d.label, style: TextStyle(fontSize: 11, color: context.rrT4)),
+                                Text(d.label,
+                                    style: TextStyle(fontSize: 11, color: context.rrT4)),
                                 Row(
                                   children: [
                                     Text(a.toStringAsFixed(1),
-                                      style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600, color: col, height: 1.1)),
-                                    Text('/5', style: TextStyle(fontSize: 11, color: context.rrT6)),
+                                        style: TextStyle(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w600,
+                                            color: col,
+                                            height: 1.1)),
+                                    Text('/5',
+                                        style: TextStyle(
+                                            fontSize: 11, color: context.rrT6)),
                                   ],
                                 ),
                               ],
@@ -259,6 +400,9 @@ class TrendScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              // Device calendar events
+              const _DeviceCalendarCard(),
               const SizedBox(height: 12),
               // Suggested resources
               const _ResourceList(),
@@ -277,10 +421,17 @@ class TrendScreen extends ConsumerWidget {
                             Row(children: [
                               IconCalendar(size: 12, color: context.rrT4),
                               const SizedBox(width: 6),
-                              Text(entry.date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: context.rrT2)),
+                              Text(entry.date,
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: context.rrT2)),
                             ]),
                             Text(scoreLabel(entry.overall),
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: scoreColor(entry.overall))),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: scoreColor(entry.overall))),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -288,11 +439,16 @@ class TrendScreen extends ConsumerWidget {
                           children: dims.map((d) => Expanded(
                             child: Column(
                               children: [
-                                dimIcon(d.key, size: 14, color: scoreColor(entry.score(d.key))),
+                                dimIcon(d.key,
+                                    size: 14,
+                                    color: scoreColor(entry.score(d.key))),
                                 const SizedBox(height: 6),
                                 Container(
-                                  width: 6, height: 6,
-                                  decoration: BoxDecoration(shape: BoxShape.circle, color: scoreColor(entry.score(d.key))),
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: scoreColor(entry.score(d.key))),
                                 ),
                               ],
                             ),
@@ -302,7 +458,11 @@ class TrendScreen extends ConsumerWidget {
                           Divider(color: context.rrDv, height: 24),
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(entry.note, style: TextStyle(fontSize: 12, color: context.rrT3, height: 1.6)),
+                            child: Text(entry.note,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: context.rrT3,
+                                    height: 1.6)),
                           ),
                         ],
                       ],

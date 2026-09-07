@@ -135,6 +135,7 @@ class _MainAppState extends ConsumerState<_MainApp> {
     final note       = ref.watch(noteProvider);
     final history    = ref.watch(historyProvider);
     final isDark     = ref.watch(themeProvider);
+    final streak     = ref.watch(streakProvider);
 
     // ── Check-in active ────────────────────────────────────────────────────
     if (inCheckin && !submitted) {
@@ -194,7 +195,7 @@ class _MainAppState extends ConsumerState<_MainApp> {
     return Scaffold(
       body: Column(
         children: [
-          Expanded(child: _tabBody(context, ref, tab, history, todayDone, isDark)),
+          Expanded(child: _tabBody(context, ref, tab, history, todayDone, isDark, streak)),
           BottomNav(
             active: tab,
             onTab:  (t) => ref.read(tabProvider.notifier).state = t,
@@ -206,12 +207,13 @@ class _MainAppState extends ConsumerState<_MainApp> {
 
   Widget _tabBody(
     BuildContext context, WidgetRef ref, AppTab tab,
-    List<Entry> history, bool todayDone, bool isDark,
+    List<Entry> history, bool todayDone, bool isDark, int streak,
   ) {
     switch (tab) {
       case AppTab.home:
         return HomeScreen(
           todayDone: todayDone,
+          streak: streak,
           onTab: (t) => ref.read(tabProvider.notifier).state = t,
           onStartCheckin: () {
             if (todayDone) {
