@@ -39,23 +39,20 @@ const NAV_ITEMS = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout, role } = useAuth();
+  const { user, isAuthenticated, logout, role, hydrated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isAuthenticated) {
+    // Only redirect after hydration — avoids false-negative on first render
+    if (hydrated && !isAuthenticated) {
       router.push("/");
     }
-  }, [isAuthenticated, router, mounted]);
+  }, [hydrated, isAuthenticated, router]);
 
-  if (!mounted || !isAuthenticated || !user) {
+  // Show spinner until hydration resolves (prevents redirect loop on load)
+  if (!hydrated || !isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />

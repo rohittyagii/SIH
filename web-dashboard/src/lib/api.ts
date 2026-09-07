@@ -55,7 +55,7 @@ export const api = {
   // Personnel
   listPersonnel: (unit?: string) =>
     apiFetch<any[]>(`/personnel/${unit ? `?unit=${encodeURIComponent(unit)}` : ""}`),
-  getPersonnelDetail: (id: number) => apiFetch<any>(`/personnel/${id}`),
+  getPersonnelDetail: (id: string) => apiFetch<any>(`/personnel/${id}`),
 
   // HR Metrics
   getUnitSummary: () => apiFetch<any[]>("/hr-metrics/unit-summary"),
@@ -66,7 +66,7 @@ export const api = {
   getMyHistory: (limit = 30) => apiFetch<any[]>(`/wellness/history?limit=${limit}`),
 
   // Assessments
-  runAssessment: (personnelId: number) =>
+  runAssessment: (personnelId: string) =>
     apiFetch<any>(`/assessments/run/${personnelId}`, { method: "POST" }),
   runUnitAssessment: (unit?: string) =>
     apiFetch<any[]>(`/assessments/run-unit${unit ? `?unit=${encodeURIComponent(unit)}` : ""}`, {
@@ -74,7 +74,7 @@ export const api = {
     }),
   getTriage: () => apiFetch<any[]>("/assessments/triage"),
   getTrends: () => apiFetch<any[]>("/assessments/trends"),
-  getAssessmentHistory: (personnelId: number) =>
+  getAssessmentHistory: (personnelId: string) =>
     apiFetch<any[]>(`/assessments/history/${personnelId}`),
   takeAction: (assessmentId: string, status: string) =>
     apiFetch<any>(`/assessments/${assessmentId}/action`, {
