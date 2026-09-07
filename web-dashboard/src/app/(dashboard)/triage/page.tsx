@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 
 interface TriageEntry {
-  personnel_id: number;
+  personnel_id: string;
   service_id: string;
   full_name: string;
   unit: string;

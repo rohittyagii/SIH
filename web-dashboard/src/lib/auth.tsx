@@ -24,6 +24,7 @@ interface AuthContextType {
   token: string | null;
   role: string | null;
   isAuthenticated: boolean;
+  hydrated: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -33,31 +34,24 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://sainiksaathi-api.onrender.com";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("welfare_user");
-      return storedUser ? JSON.parse(storedUser) : null;
-    }
-    return null;
-  });
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("welfare_token");
-    }
-    return null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("welfare_token");
-    localStorage.removeItem("welfare_user");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("welfare_token");
+      localStorage.removeItem("welfare_user");
+    }
   }, []);
 
+  // Restore session once on mount (client-side only)
   useEffect(() => {
-    // Restore session from localStorage
     const storedToken = localStorage.getItem("welfare_token");
     const storedUser = localStorage.getItem("welfare_user");
+
     if (storedToken && storedUser) {
       try {
         const decoded = jwtDecode<JWTPayload>(storedToken);
@@ -65,13 +59,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
         } else {
-          logout();
+          // Token expired — clear storage silently
+          localStorage.removeItem("welfare_token");
+          localStorage.removeItem("welfare_user");
         }
       } catch {
-        logout();
+        localStorage.removeItem("welfare_token");
+        localStorage.removeItem("welfare_user");
       }
     }
-  }, [logout]);
+    // Signal that hydration is complete regardless of auth state
+    setHydrated(true);
+  }, []);
 
   const login = async (username: string, password: string) => {
     // First, get token
@@ -111,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         role: user?.role || null,
         isAuthenticated: !!token,
+        hydrated,
         login,
         logout,
       }}

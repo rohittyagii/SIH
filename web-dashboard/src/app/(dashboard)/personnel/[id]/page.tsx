@@ -22,7 +22,7 @@ export default function PersonnelDetailPage() {
   const [loading, setLoading] = useState(true);
   const [assessing, setAssessing] = useState(false);
 
-  const personnelId = Number(params.id);
+  const personnelId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
 
   useEffect(() => {
     loadDetail();
