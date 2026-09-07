@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://sainiksaathi-api.onrender.com";
+const API_URL = "/api/proxy";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
