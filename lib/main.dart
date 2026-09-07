@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'theme/colors.dart';
 import 'providers/app_state.dart';
 import 'widgets/bottom_nav.dart';
@@ -100,6 +101,12 @@ class _MainAppState extends ConsumerState<_MainApp> {
   }
   
   Future<void> _loadInitialData() async {
+    const storage = FlutterSecureStorage();
+    final uName = await storage.read(key: 'user_name');
+    if (uName != null) {
+      ref.read(userNameProvider.notifier).state = uName;
+    }
+
     try {
       final syncSvc = ref.read(syncServiceProvider);
       await syncSvc.syncIfOnline();

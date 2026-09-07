@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/bottom_nav.dart';
+import '../providers/app_state.dart';
 
 // ── HomeScreen ───────────────────────────────────────────────────────────────
 class HomeScreen extends ConsumerWidget {
@@ -35,6 +36,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userName = ref.watch(userNameProvider) ?? 'User';
+
     return Scaffold(
       backgroundColor: context.rrBg,
       body: Stack(
@@ -67,7 +70,7 @@ class HomeScreen extends ConsumerWidget {
                             style:
                                 TextStyle(fontSize: 14, color: context.rrT4)),
                         const SizedBox(height: 2),
-                        Text('Foxtrot-42',
+                        Text(userName,
                             style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.w600,

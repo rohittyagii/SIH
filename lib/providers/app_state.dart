@@ -19,6 +19,7 @@ final inCheckinProvider  = StateProvider<bool>((ref) => false);
 final submittedProvider  = StateProvider<bool>((ref) => false);
 final todayDoneProvider  = StateProvider<bool>((ref) => false);
 final noteProvider       = StateProvider<String>((ref) => '');
+final userNameProvider   = StateProvider<String?>((ref) => null);
 
 final scoresProvider = StateProvider<Map<DimKey, int>>((ref) => {
   DimKey.overall:  0,

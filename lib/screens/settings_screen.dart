@@ -6,6 +6,7 @@ import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/toggle.dart';
 import '../services/calendar_service.dart';
+import '../providers/app_state.dart';
 
 // ── Shared sub-widgets ─────────────────────────────────────────────────────
 
@@ -197,12 +198,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // ── Your account ────────────────────────────────────────────
               const _SectionLabel('Your account'),
-              const RrCard(
+              RrCard(
                 child: Column(
                   children: [
                     _SettingRow(
-                        label: 'Your ID', value: 'Foxtrot-42', first: true),
-                    _SettingRow(
+                        label: 'Your ID', value: ref.watch(userNameProvider) ?? 'User', first: true),
+                    const _SettingRow(
                         label: 'PIN & biometrics',
                         value: 'Configured',
                         arrow: true),
