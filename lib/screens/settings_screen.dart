@@ -5,6 +5,7 @@ import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/toggle.dart';
+import '../widgets/bottom_nav.dart';
 import '../services/calendar_service.dart';
 import '../services/auth_service.dart';
 import '../providers/app_state.dart';

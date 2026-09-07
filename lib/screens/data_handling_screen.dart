@@ -63,7 +63,7 @@ class DataHandlingScreen extends StatelessWidget {
               _sectionBody(context,
                   'By continuing to use SainikSaathi, you actively consent to this data processing model. You may revoke this consent at any time by deleting your data and discontinuing the use of the app.'),
               const SizedBox(height: 32),
-              Center(
+              const Center(
                 child: Text('Confidential & Restricted',
                     style: TextStyle(
                         fontSize: 12,
