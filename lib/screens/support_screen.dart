@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
@@ -146,41 +147,47 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: AppColors.score5.withValues(alpha: 0.10),
-                              border: Border.all(
-                                  color:
-                                      AppColors.score5.withValues(alpha: 0.20)),
-                            ),
-                            child: const Center(
-                              child: Text('0800 323 4444',
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.score5)),
+                          child: GestureDetector(
+                            onTap: () => launchUrl(Uri.parse('tel:08003234444')),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.score5.withValues(alpha: 0.10),
+                                border: Border.all(
+                                    color:
+                                        AppColors.score5.withValues(alpha: 0.20)),
+                              ),
+                              child: const Center(
+                                child: Text('0800 323 4444',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.score5)),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: AppColors.dimSleep.withValues(alpha: 0.10),
-                              border: Border.all(
-                                  color: AppColors.dimSleep
-                                      .withValues(alpha: 0.20)),
-                            ),
-                            child: const Center(
-                              child: Text('Text BLUE to 85258',
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.dimSleep)),
+                          child: GestureDetector(
+                            onTap: () => launchUrl(Uri.parse('sms:85258?body=BLUE')),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.dimSleep.withValues(alpha: 0.10),
+                                border: Border.all(
+                                    color: AppColors.dimSleep
+                                        .withValues(alpha: 0.20)),
+                              ),
+                              child: const Center(
+                                child: Text('Text BLUE to 85258',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.dimSleep)),
+                              ),
                             ),
                           ),
                         ),

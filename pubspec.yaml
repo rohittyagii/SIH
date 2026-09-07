@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.20.3
   device_calendar: ^4.3.0
   timezone: ^0.9.4
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
