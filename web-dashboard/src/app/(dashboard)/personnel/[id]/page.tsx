@@ -25,7 +25,10 @@ export default function PersonnelDetailPage() {
   const personnelId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
 
   useEffect(() => {
+    setDetail(null);
+    setLoading(true);
     loadDetail();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personnelId]);
 
   const loadDetail = async () => {

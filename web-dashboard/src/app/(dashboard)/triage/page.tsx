@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 
 interface TriageEntry {
-  personnel_id: string;
+  user_id: string;
   service_id: string;
   full_name: string;
   unit: string;
   risk_level: string;
+  resilience_score: number;
   contributing_factors: string;
   recommended_intervention: string;
   assessment_id: string;
@@ -139,7 +140,7 @@ export default function TriagePage() {
                 key={entry.assessment_id}
                 className="glass-card hover:bg-accent/30 transition-colors animate-slide-up cursor-pointer"
                 style={{ animationDelay: `${i * 0.05}s` }}
-                onClick={() => router.push(`/personnel/${entry.personnel_id}`)}
+                onClick={() => router.push(`/personnel/${entry.user_id}`)}
               >
                 <CardContent className="py-4">
                   <div className="flex flex-col lg:flex-row lg:items-center gap-4">

@@ -54,7 +54,7 @@ export const api = {
 
   // Personnel
   listPersonnel: (unit?: string) =>
-    apiFetch<any[]>(`/personnel/${unit ? `?unit=${encodeURIComponent(unit)}` : ""}`),
+    apiFetch<any[]>(unit ? `/personnel?unit=${encodeURIComponent(unit)}` : "/personnel"),
   getPersonnelDetail: (id: string) => apiFetch<any>(`/personnel/${id}`),
 
   // HR Metrics
