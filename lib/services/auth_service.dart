@@ -51,4 +51,10 @@ class AuthService {
     } catch (_) {}
     await _api.clearToken();
   }
+
+  Future<void> updatePreferences(Map<String, dynamic> prefs) async {
+    try {
+      await _api.dio.patch('/users/me/preferences', data: prefs);
+    } catch (_) {}
+  }
 }

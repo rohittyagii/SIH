@@ -106,6 +106,10 @@ class _MainAppState extends ConsumerState<_MainApp> {
     if (uName != null) {
       ref.read(userNameProvider.notifier).state = uName;
     }
+    final lang = await storage.read(key: 'language_pref');
+    if (lang != null) {
+      ref.read(languagePrefProvider.notifier).state = lang;
+    }
 
     try {
       final syncSvc = ref.read(syncServiceProvider);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme/colors.dart';
 import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
@@ -94,7 +95,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  String _lang = 'en-GB';
   bool _langOpen = false;
   bool _reminder = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 7, minute: 30);
@@ -104,7 +104,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _deactivate = 'idle'; // 'idle' | 'confirm'
   String _deleteData = 'idle'; // 'idle' | 'confirm'
 
-  Language get _currentLang => languages.firstWhere((l) => l.code == _lang);
+  Language _getCurrentLang(String code) =>
+      languages.firstWhere((l) => l.code == code, orElse: () => languages.first);
 
   String get _reminderLabel {
     final h = _reminderTime.hour.toString().padLeft(2, '0');
@@ -145,6 +146,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentLangCode = ref.watch(languagePrefProvider);
+    final currentLang = _getCurrentLang(currentLangCode);
+
     return Scaffold(
       backgroundColor: context.rrBg,
       body: SafeArea(
@@ -243,7 +247,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       style: TextStyle(
                                           fontSize: 14, color: context.rrT2)),
                                   Text(
-                                      '${_currentLang.label} · ${_currentLang.native}',
+                                      '${currentLang.label} · ${currentLang.native}',
                                       style: TextStyle(
                                           fontSize: 12, color: context.rrT4)),
                                 ],
@@ -262,12 +266,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (_langOpen) ...[
                       Divider(color: context.rrDv2, height: 28),
                       ...languages.map((l) {
-                        final selected = _lang == l.code;
+                        final selected = currentLangCode == l.code;
                         return GestureDetector(
-                          onTap: () => setState(() {
-                            _lang = l.code;
-                            _langOpen = false;
-                          }),
+                          onTap: () async {
+                            ref.read(languagePrefProvider.notifier).state = l.code;
+                            setState(() => _langOpen = false);
+                            
+                            const storage = FlutterSecureStorage();
+                            await storage.write(key: 'language_pref', value: l.code);
+                            
+                            try {
+                              await ref.read(authServiceProvider).updatePreferences({'language_pref': l.code});
+                            } catch (_) {}
+                          },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 120),
                             margin: const EdgeInsets.only(bottom: 2),

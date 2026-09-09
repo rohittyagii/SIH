@@ -157,11 +157,12 @@ const learnMoreItems = [
 const languages = [
   Language(code: 'en-GB', label: 'English (UK)', native: 'English'),
   Language(code: 'en-US', label: 'English (US)', native: 'English'),
-  Language(code: 'fr',    label: 'French',        native: 'Français'),
-  Language(code: 'de',    label: 'German',        native: 'Deutsch'),
-  Language(code: 'es',    label: 'Spanish',       native: 'Español'),
-  Language(code: 'cy',    label: 'Welsh',         native: 'Cymraeg'),
-  Language(code: 'pl',    label: 'Polish',        native: 'Polski'),
+  Language(code: 'hi',    label: 'Hindi',         native: 'हिन्दी'),
+  Language(code: 'mr',    label: 'Marathi',       native: 'मराठी'),
+  Language(code: 'bn',    label: 'Bengali',       native: 'বাংলা'),
+  Language(code: 'te',    label: 'Telugu',        native: 'తెలుగు'),
+  Language(code: 'ta',    label: 'Tamil',         native: 'தமிழ்'),
+  Language(code: 'gu',    label: 'Gujarati',      native: 'ગુજરાતી'),
 ];
 
 // ── Seed history entries ───────────────────────────────────────────────────

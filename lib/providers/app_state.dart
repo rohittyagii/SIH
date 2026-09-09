@@ -20,6 +20,7 @@ final submittedProvider  = StateProvider<bool>((ref) => false);
 final todayDoneProvider  = StateProvider<bool>((ref) => false);
 final noteProvider       = StateProvider<String>((ref) => '');
 final userNameProvider   = StateProvider<String?>((ref) => null);
+final languagePrefProvider = StateProvider<String>((ref) => 'en-GB');
 
 final scoresProvider = StateProvider<Map<DimKey, int>>((ref) => {
   DimKey.overall:  0,
