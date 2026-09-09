@@ -15,22 +15,23 @@ final screenProvider = StateProvider<AppScreen>((ref) => AppScreen.pin);
 final tabProvider = StateProvider<AppTab>((ref) => AppTab.home);
 
 // ── Check-in state ─────────────────────────────────────────────────────────
-final inCheckinProvider  = StateProvider<bool>((ref) => false);
-final submittedProvider  = StateProvider<bool>((ref) => false);
-final todayDoneProvider  = StateProvider<bool>((ref) => false);
-final noteProvider       = StateProvider<String>((ref) => '');
-final userNameProvider   = StateProvider<String?>((ref) => null);
+final inCheckinProvider = StateProvider<bool>((ref) => false);
+final submittedProvider = StateProvider<bool>((ref) => false);
+final todayDoneProvider = StateProvider<bool>((ref) => false);
+final noteProvider = StateProvider<String>((ref) => '');
+final userNameProvider = StateProvider<String?>((ref) => null);
 final languagePrefProvider = StateProvider<String>((ref) => 'en-GB');
 
 final scoresProvider = StateProvider<Map<DimKey, int>>((ref) => {
-  DimKey.overall:  0,
-  DimKey.sleep:    0,
-  DimKey.physical: 0,
-  DimKey.focus:    0,
-});
+      DimKey.overall: 0,
+      DimKey.sleep: 0,
+      DimKey.physical: 0,
+      DimKey.focus: 0,
+    });
 
 // ── History provider ────────────────────────────────────────────────────────
-final historyProvider = StateProvider<List<Entry>>((ref) => List.from(seedHistory));
+final historyProvider =
+    StateProvider<List<Entry>>((ref) => List.from(seedHistory));
 
 // ── Streak provider — consecutive daily check-ins counting back from today ──
 final streakProvider = Provider<int>((ref) {
@@ -61,21 +62,31 @@ DateTime? _parseEntryDate(String raw) {
   try {
     final parts = raw.split('-');
     if (parts.length == 3) {
-      return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+      return DateTime(
+          int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
     }
   } catch (_) {}
   // Friendly format: "Wed, Sep 3"
   const months = {
-    'Jan': 1, 'Feb': 2,  'Mar': 3,  'Apr': 4,
-    'May': 5, 'Jun': 6,  'Jul': 7,  'Aug': 8,
-    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+    'Jan': 1,
+    'Feb': 2,
+    'Mar': 3,
+    'Apr': 4,
+    'May': 5,
+    'Jun': 6,
+    'Jul': 7,
+    'Aug': 8,
+    'Sep': 9,
+    'Oct': 10,
+    'Nov': 11,
+    'Dec': 12,
   };
   try {
     final stripped = raw.replaceAll(',', '').trim();
-    final parts    = stripped.split(' ');
+    final parts = stripped.split(' ');
     final dateParts = parts.length == 3 ? parts.sublist(1) : parts;
     final month = months[dateParts[0]];
-    final day   = int.parse(dateParts[1]);
+    final day = int.parse(dateParts[1]);
     if (month == null) return null;
     return DateTime(DateTime.now().year, month, day);
   } catch (_) {
@@ -86,22 +97,37 @@ DateTime? _parseEntryDate(String raw) {
 // ── Actions ─────────────────────────────────────────────────────────────────
 
 Map<DimKey, int> emptyScores() => {
-  DimKey.overall: 0, DimKey.sleep: 0, DimKey.physical: 0, DimKey.focus: 0,
-};
+      DimKey.overall: 0,
+      DimKey.sleep: 0,
+      DimKey.physical: 0,
+      DimKey.focus: 0,
+    };
 
 /// Build an Entry stamped with today's real date.
 Entry buildEntry(Map<DimKey, int> scores, String note) {
-  final now    = DateTime.now();
-  const days   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  final now = DateTime.now();
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
   final label = '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
   return Entry(
-    date:     label,
-    overall:  scores[DimKey.overall]!,
-    sleep:    scores[DimKey.sleep]!,
+    date: label,
+    overall: scores[DimKey.overall]!,
+    sleep: scores[DimKey.sleep]!,
     physical: scores[DimKey.physical]!,
-    focus:    scores[DimKey.focus]!,
-    note:     note,
+    focus: scores[DimKey.focus]!,
+    note: note,
   );
 }

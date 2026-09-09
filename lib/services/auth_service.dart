@@ -9,7 +9,8 @@ class AuthService {
   final ApiClient _api;
   AuthService(this._api);
 
-  Future<Map<String, dynamic>> activateDevice(String code, String pin, String fullName) async {
+  Future<Map<String, dynamic>> activateDevice(
+      String code, String pin, String fullName) async {
     try {
       final res = await _api.dio.post('/auth/mobile/activate', data: {
         'activation_code': code,
@@ -37,7 +38,7 @@ class AuthService {
       rethrow;
     }
   }
-  
+
   Future<void> logout() async {
     try {
       await _api.dio.post('/auth/logout');

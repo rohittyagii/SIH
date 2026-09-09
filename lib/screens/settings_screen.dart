@@ -10,6 +10,7 @@ import '../widgets/bottom_nav.dart';
 import '../services/calendar_service.dart';
 import '../services/auth_service.dart';
 import '../providers/app_state.dart';
+import '../data/translations.dart';
 import 'data_handling_screen.dart';
 
 // ── Shared sub-widgets ─────────────────────────────────────────────────────
@@ -104,8 +105,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _deactivate = 'idle'; // 'idle' | 'confirm'
   String _deleteData = 'idle'; // 'idle' | 'confirm'
 
-  Language _getCurrentLang(String code) =>
-      languages.firstWhere((l) => l.code == code, orElse: () => languages.first);
+  Language _getCurrentLang(String code) => languages
+      .firstWhere((l) => l.code == code, orElse: () => languages.first);
 
   String get _reminderLabel {
     final h = _reminderTime.hour.toString().padLeft(2, '0');
@@ -157,7 +158,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Settings',
+              Text(tr('Settings', ref),
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -165,7 +166,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 24),
 
               // ── Appearance ─────────────────────────────────────────────
-              const _SectionLabel('Appearance'),
+              _SectionLabel(tr('Appearance', ref)),
               RrCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +177,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Theme',
+                            Text(tr('Theme', ref),
                                 style: TextStyle(
                                     fontSize: 14, color: context.rrT2)),
                             const SizedBox(height: 2),
@@ -200,8 +201,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       child: Row(
                         children: [
-                          _themeBtn(context, 'dark', 'Dark'),
-                          _themeBtn(context, 'light', 'Light'),
+                          _themeBtn(context, 'dark', tr('Dark', ref)),
+                          _themeBtn(context, 'light', tr('Light', ref)),
                         ],
                       ),
                     ),
@@ -211,15 +212,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Your account ────────────────────────────────────────────
-              const _SectionLabel('Your account'),
+              _SectionLabel(tr('Your account', ref)),
               RrCard(
                 child: Column(
                   children: [
                     _SettingRow(
-                        label: 'Your ID', value: ref.watch(userNameProvider) ?? 'User', first: true),
-                    const _SettingRow(
-                        label: 'PIN & biometrics',
-                        value: 'Configured',
+                        label: tr('Your ID', ref),
+                        value: ref.watch(userNameProvider) ?? 'User',
+                        first: true),
+                    _SettingRow(
+                        label: tr('PIN & biometrics', ref),
+                        value: tr('Configured', ref),
                         arrow: true),
                   ],
                 ),
@@ -227,7 +230,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Language & region ───────────────────────────────────────
-              const _SectionLabel('Language & region'),
+              _SectionLabel(tr('Language & region', ref)),
               RrCard(
                 child: Column(
                   children: [
@@ -243,7 +246,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Language',
+                                  Text(tr('Language', ref),
                                       style: TextStyle(
                                           fontSize: 14, color: context.rrT2)),
                                   Text(
@@ -269,14 +272,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         final selected = currentLangCode == l.code;
                         return GestureDetector(
                           onTap: () async {
-                            ref.read(languagePrefProvider.notifier).state = l.code;
+                            ref.read(languagePrefProvider.notifier).state =
+                                l.code;
                             setState(() => _langOpen = false);
-                            
+
                             const storage = FlutterSecureStorage();
-                            await storage.write(key: 'language_pref', value: l.code);
-                            
+                            await storage.write(
+                                key: 'language_pref', value: l.code);
+
                             try {
-                              await ref.read(authServiceProvider).updatePreferences({'language_pref': l.code});
+                              await ref
+                                  .read(authServiceProvider)
+                                  .updatePreferences({'language_pref': l.code});
                             } catch (_) {}
                           },
                           child: AnimatedContainer(
@@ -337,7 +344,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Notifications ───────────────────────────────────────────
-              const _SectionLabel('Notifications'),
+              _SectionLabel(tr('Notifications', ref)),
               RrCard(
                 child: Column(
                   children: [
@@ -346,7 +353,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         IconBell(
                             size: 14,
                             color: _reminder ? AppColors.indigo : context.rrT6),
-                        'Check-in reminder',
+                        tr('Daily reminder', ref),
                         _reminderLabel,
                         _reminder,
                         _toggleReminder,
@@ -357,7 +364,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             size: 14,
                             color:
                                 _syncAlerts ? AppColors.indigo : context.rrT6),
-                        'Sync alerts',
+                        tr('Sync alerts', ref),
                         'When offline data syncs',
                         _syncAlerts,
                         () => setState(() => _syncAlerts = !_syncAlerts),
@@ -369,7 +376,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             color: _weeklySummary
                                 ? AppColors.indigo
                                 : context.rrT6),
-                        'Weekly summary',
+                        tr('Weekly summary', ref),
                         'Mondays at 08:00',
                         _weeklySummary,
                         () => setState(() => _weeklySummary = !_weeklySummary),
@@ -380,13 +387,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Data & privacy ──────────────────────────────────────────
-              const _SectionLabel('Data & privacy'),
+              _SectionLabel(tr('Data & privacy', ref)),
               RrCard(
                 child: _deleteData == 'idle'
                     ? Column(
                         children: [
                           _SettingRow(
-                            label: 'Data handling',
+                            label: tr('Data handling', ref),
                             arrow: true,
                             first: true,
                             onTap: () {
@@ -396,9 +403,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             },
                           ),
                           _SettingRow(
-                            label: 'Delete all my data',
+                            label: tr('Delete all my data', ref),
                             danger: true,
-                            onTap: () => setState(() => _deleteData = 'confirm'),
+                            onTap: () =>
+                                setState(() => _deleteData = 'confirm'),
                           ),
                         ],
                       )
@@ -407,7 +415,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Session ─────────────────────────────────────────────────
-              const _SectionLabel('Session'),
+              _SectionLabel(tr('Session', ref)),
               RrCard(
                   child: _logout == 'idle'
                       ? _logoutIdle(context)
@@ -415,7 +423,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── Device ──────────────────────────────────────────────────
-              const _SectionLabel('Device'),
+              _SectionLabel(tr('Device', ref)),
               RrCard(
                   child: _deactivate == 'idle'
                       ? _deactivateIdle(context)
@@ -423,13 +431,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 20),
 
               // ── About ────────────────────────────────────────────────────
-              const _SectionLabel('About'),
-              const RrCard(
+              _SectionLabel(tr('About', ref)),
+              RrCard(
                 child: Column(
                   children: [
                     _SettingRow(
-                        label: 'App version', value: '1.0.0', first: true),
-                    _SettingRow(label: 'Unit programme', value: 'Bravo Wing'),
+                        label: tr('App version', ref), value: '1.0.0', first: true),
+                    _SettingRow(label: tr('Unit programme', ref), value: 'Bravo Wing'),
                   ],
                 ),
               ),
@@ -505,7 +513,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Row(children: [
           const IconLogOut(size: 15, color: Color(0xFFEF6B6B)),
           const SizedBox(width: 10),
-          Text('Sign out', style: TextStyle(fontSize: 14, color: context.rrT2)),
+          Text(tr('Sign out', ref), style: TextStyle(fontSize: 14, color: context.rrT2)),
         ]),
       );
 
@@ -548,12 +556,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           Row(children: [
             Expanded(
-                child: _actionBtn(context, 'Cancel',
+                child: _actionBtn(context, tr('Cancel', ref),
                     () => setState(() => _logout = 'idle'), false)),
             const SizedBox(width: 10),
             Expanded(
                 flex: 2,
-                child: _actionBtn(context, 'Sign out', widget.onLogout, true,
+                child: _actionBtn(context, tr('Sign out', ref), widget.onLogout, true,
                     danger: true)),
           ]),
         ],
@@ -564,7 +572,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Row(children: [
           const IconAlertTriangle(size: 14, color: Color(0xFFC07830)),
           const SizedBox(width: 10),
-          Text('Deactivate this device',
+          Text(tr('Deactivate this device', ref),
               style: TextStyle(fontSize: 14, color: context.rrT2)),
         ]),
       );
@@ -611,12 +619,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           Row(children: [
             Expanded(
-                child: _actionBtn(context, 'Cancel',
+                child: _actionBtn(context, tr('Cancel', ref),
                     () => setState(() => _deactivate = 'idle'), false)),
             const SizedBox(width: 10),
             Expanded(
                 flex: 2,
-                child: _actionBtn(context, 'Deactivate', () {}, false,
+                child: _actionBtn(context, tr('Deactivate', ref), () {}, false,
                     amber: true)),
           ]),
         ],
@@ -638,7 +646,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 const Padding(
                     padding: EdgeInsets.only(top: 1),
-                    child: IconAlertTriangle(size: 14, color: Color(0xFFEF6B6B))),
+                    child:
+                        IconAlertTriangle(size: 14, color: Color(0xFFEF6B6B))),
                 const SizedBox(width: 10),
                 Expanded(
                     child: Column(
@@ -661,12 +670,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           Row(children: [
             Expanded(
-                child: _actionBtn(context, 'Cancel',
+                child: _actionBtn(context, tr('Cancel', ref),
                     () => setState(() => _deleteData = 'idle'), false)),
             const SizedBox(width: 10),
             Expanded(
                 flex: 2,
-                child: _actionBtn(context, 'Delete Data', () async {
+                child: _actionBtn(context, tr('Delete Data', ref), () async {
                   try {
                     await ref.read(authServiceProvider).deleteMyData();
                   } catch (_) {}

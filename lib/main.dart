@@ -20,7 +20,7 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // We need a ProviderContainer to init SyncService before runApp if we want to do it here,
   // or we can init SyncService's Hive stuff inside a Riverpod hook or async main.
   final container = ProviderContainer();
@@ -62,18 +62,22 @@ class _AppShell extends ConsumerWidget {
     switch (screen) {
       case AppScreen.pin:
         return PinScreen(
-          onUnlocked: ()  => ref.read(screenProvider.notifier).state = AppScreen.app,
-          onSetupNew: ()  => ref.read(screenProvider.notifier).state = AppScreen.activation,
+          onUnlocked: () =>
+              ref.read(screenProvider.notifier).state = AppScreen.app,
+          onSetupNew: () =>
+              ref.read(screenProvider.notifier).state = AppScreen.activation,
         );
 
       case AppScreen.activation:
         return ActivationScreen(
-          onActivated: () => ref.read(screenProvider.notifier).state = AppScreen.consent,
+          onActivated: () =>
+              ref.read(screenProvider.notifier).state = AppScreen.consent,
         );
 
       case AppScreen.consent:
         return ConsentScreen(
-          onAgree: () => ref.read(screenProvider.notifier).state = AppScreen.app,
+          onAgree: () =>
+              ref.read(screenProvider.notifier).state = AppScreen.app,
         );
 
       case AppScreen.app:
@@ -99,7 +103,7 @@ class _MainAppState extends ConsumerState<_MainApp> {
       _loadInitialData();
     });
   }
-  
+
   Future<void> _loadInitialData() async {
     const storage = FlutterSecureStorage();
     final uName = await storage.read(key: 'user_name');
@@ -114,22 +118,24 @@ class _MainAppState extends ConsumerState<_MainApp> {
     try {
       final syncSvc = ref.read(syncServiceProvider);
       await syncSvc.syncIfOnline();
-      
+
       final chkSvc = ref.read(checkinServiceProvider);
       final todayStatus = await chkSvc.checkTodayStatus();
       if (todayStatus['has_checked_in'] == true) {
         ref.read(todayDoneProvider.notifier).state = true;
       }
-      
+
       final historyRaw = await chkSvc.getHistory();
-      final history = historyRaw.map((e) => Entry(
-        date: e['checkin_date'],
-        overall: e['overall_score'],
-        sleep: e['sleep_score'],
-        physical: e['physical_score'],
-        focus: e['focus_score'],
-        note: e['note'] ?? '',
-      )).toList();
+      final history = historyRaw
+          .map((e) => Entry(
+                date: e['checkin_date'],
+                overall: e['overall_score'],
+                sleep: e['sleep_score'],
+                physical: e['physical_score'],
+                focus: e['focus_score'],
+                note: e['note'] ?? '',
+              ))
+          .toList();
       ref.read(historyProvider.notifier).state = history;
     } catch (e) {
       // Ignored for now, keep seed history if offline
@@ -138,21 +144,21 @@ class _MainAppState extends ConsumerState<_MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    final tab        = ref.watch(tabProvider);
-    final inCheckin  = ref.watch(inCheckinProvider);
-    final submitted  = ref.watch(submittedProvider);
-    final todayDone  = ref.watch(todayDoneProvider);
-    final scores     = ref.watch(scoresProvider);
-    final note       = ref.watch(noteProvider);
-    final history    = ref.watch(historyProvider);
-    final isDark     = ref.watch(themeProvider);
-    final streak     = ref.watch(streakProvider);
+    final tab = ref.watch(tabProvider);
+    final inCheckin = ref.watch(inCheckinProvider);
+    final submitted = ref.watch(submittedProvider);
+    final todayDone = ref.watch(todayDoneProvider);
+    final scores = ref.watch(scoresProvider);
+    final note = ref.watch(noteProvider);
+    final history = ref.watch(historyProvider);
+    final isDark = ref.watch(themeProvider);
+    final streak = ref.watch(streakProvider);
 
     // ── Check-in active ────────────────────────────────────────────────────
     if (inCheckin && !submitted) {
       return CheckinScreen(
         scores: scores,
-        note:   note,
+        note: note,
         onScoreChanged: (k, n) {
           final next = Map<DimKey, int>.from(scores)..[k] = n;
           ref.read(scoresProvider.notifier).state = next;
@@ -181,10 +187,13 @@ class _MainAppState extends ConsumerState<_MainApp> {
             });
           }
 
-          ref.read(historyProvider.notifier).state = [buildEntry(scores, note), ...history];
-          ref.read(inCheckinProvider.notifier).state  = false;
-          ref.read(submittedProvider.notifier).state  = true;
-          ref.read(todayDoneProvider.notifier).state  = true;
+          ref.read(historyProvider.notifier).state = [
+            buildEntry(scores, note),
+            ...history
+          ];
+          ref.read(inCheckinProvider.notifier).state = false;
+          ref.read(submittedProvider.notifier).state = true;
+          ref.read(todayDoneProvider.notifier).state = true;
         },
         onBack: () => ref.read(inCheckinProvider.notifier).state = false,
       );
@@ -194,7 +203,7 @@ class _MainAppState extends ConsumerState<_MainApp> {
     if (submitted) {
       return SubmittedScreen(
         scores: scores,
-        note:   note,
+        note: note,
         onDone: () {
           ref.read(submittedProvider.notifier).state = false;
           ref.read(tabProvider.notifier).state = AppTab.home;
@@ -206,10 +215,12 @@ class _MainAppState extends ConsumerState<_MainApp> {
     return Scaffold(
       body: Column(
         children: [
-          Expanded(child: _tabBody(context, ref, tab, history, todayDone, isDark, streak)),
+          Expanded(
+              child: _tabBody(
+                  context, ref, tab, history, todayDone, isDark, streak)),
           BottomNav(
             active: tab,
-            onTab:  (t) => ref.read(tabProvider.notifier).state = t,
+            onTab: (t) => ref.read(tabProvider.notifier).state = t,
           ),
         ],
       ),
@@ -217,8 +228,13 @@ class _MainAppState extends ConsumerState<_MainApp> {
   }
 
   Widget _tabBody(
-    BuildContext context, WidgetRef ref, AppTab tab,
-    List<Entry> history, bool todayDone, bool isDark, int streak,
+    BuildContext context,
+    WidgetRef ref,
+    AppTab tab,
+    List<Entry> history,
+    bool todayDone,
+    bool isDark,
+    int streak,
   ) {
     switch (tab) {
       case AppTab.home:
@@ -231,7 +247,7 @@ class _MainAppState extends ConsumerState<_MainApp> {
               ref.read(submittedProvider.notifier).state = true;
             } else {
               ref.read(scoresProvider.notifier).state = emptyScores();
-              ref.read(noteProvider.notifier).state   = '';
+              ref.read(noteProvider.notifier).state = '';
               ref.read(inCheckinProvider.notifier).state = true;
             }
           },
@@ -252,13 +268,12 @@ class _MainAppState extends ConsumerState<_MainApp> {
             try {
               await ref.read(authServiceProvider).logout();
             } catch (_) {}
-            ref.read(inCheckinProvider.notifier).state  = false;
-            ref.read(submittedProvider.notifier).state  = false;
-            ref.read(tabProvider.notifier).state        = AppTab.home;
-            ref.read(screenProvider.notifier).state     = AppScreen.pin;
+            ref.read(inCheckinProvider.notifier).state = false;
+            ref.read(submittedProvider.notifier).state = false;
+            ref.read(tabProvider.notifier).state = AppTab.home;
+            ref.read(screenProvider.notifier).state = AppScreen.pin;
           },
         );
     }
   }
 }
-
