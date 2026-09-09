@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ── Dark palette (maps to :root CSS vars) ─────────────────────────────────
+// ── Dark palette (rosewood dark — maps to :root CSS vars) ─────────────────
 abstract final class AppColorsDark {
-  static const bg   = Color(0xFF0A0F14);
-  static const bgd  = Color(0xFF060A0E);
-  static const bgn  = Color(0xFF0C1520);
-  static const bgc  = Color(0xFF131B24);
+  static const bg   = Color(0xFF1A0D12); // deep rosewood black
+  static const bgd  = Color(0xFF130A0E); // even deeper for layering
+  static const bgn  = Color(0xFF200F17); // elevated surfaces
+  static const bgc  = Color(0xFF2A1520); // card background
 
   // Card chrome
   static const cbt  = Color(0x1AFFFFFF); // rgba(255,255,255,0.10)
   static const cb   = Color(0x0BFFFFFF); // rgba(255,255,255,0.045)
   static const csh  = Color(0x6B000000); // rgba(0,0,0,0.42)
 
-  // Text t1 → t7
-  static const t1   = Color(0xFFE8EEFA);
-  static const t2   = Color(0xFFC8D8E8);
-  static const t2b  = Color(0xFF7A92A8);
-  static const t3   = Color(0xFF5C7A90);
-  static const t4   = Color(0xFF4A6070);
-  static const t5   = Color(0xFF3D5568);
-  static const t6   = Color(0xFF384C5E);
-  static const t7   = Color(0xFF253545);
+  // Text t1 → t7 (warm off-white fading to muted rose-grey)
+  static const t1   = Color(0xFFF5EDF0);
+  static const t2   = Color(0xFFDFC8CF);
+  static const t2b  = Color(0xFFA87A8A);
+  static const t3   = Color(0xFF8C5F6E);
+  static const t4   = Color(0xFF6E4A57);
+  static const t5   = Color(0xFF5A3D49);
+  static const t6   = Color(0xFF4E3340);
+  static const t7   = Color(0xFF3A2430);
 
   // Surfaces
   static const ov   = Color(0x06FFFFFF); // rgba(255,255,255,0.025)
@@ -43,25 +43,26 @@ abstract final class AppColorsDark {
   static const b7   = Color(0x29FFFFFF);
 }
 
-// ── Light palette (maps to [data-theme="light"] overrides) ─────────────────
+// ── Light palette (rosewood light) ─────────────────────────────────────────
 abstract final class AppColorsLight {
-  static const bg   = Color(0xFFEEF2F8);
-  static const bgd  = Color(0xFFE4EAF5);
-  static const bgn  = Color(0xFFFFFFFF);
-  static const bgc  = Color(0xFFFFFFFF);
+  static const bg   = Color(0xFFFCFDFF); // near-white with cool tint (provided)
+  static const bgd  = Color(0xFFF2E6EA); // soft rose depth layer
+  static const bgn  = Color(0xFFFFFFFF); // pure white cards
+  static const bgc  = Color(0xFFFFFFFF); // card fills
 
   static const cbt  = Color(0x17000000);
   static const cb   = Color(0x0D000000);
   static const csh  = Color(0x12000000);
 
-  static const t1   = Color(0xFF0E1825);
-  static const t2   = Color(0xFF1E2C3E);
-  static const t2b  = Color(0xFF3A5060);
-  static const t3   = Color(0xFF4A6070);
-  static const t4   = Color(0xFF5E7282);
-  static const t5   = Color(0xFF6E8292);
-  static const t6   = Color(0xFF8898A8);
-  static const t7   = Color(0xFF9EAEBB);
+  // Text t1 → t7 (near-black fading to muted rose-grey)
+  static const t1   = Color(0xFF1A0D12);
+  static const t2   = Color(0xFF2E1A22);
+  static const t2b  = Color(0xFF5A3D4A);
+  static const t3   = Color(0xFF6E4A57);
+  static const t4   = Color(0xFF836070);
+  static const t5   = Color(0xFF957080);
+  static const t6   = Color(0xFFA88090);
+  static const t7   = Color(0xFFBE96A4);
 
   static const ov   = Color(0x08000000);
   static const pl   = Color(0x0A000000);
@@ -83,7 +84,7 @@ abstract final class AppColorsLight {
 
 // ── Brand / semantic colors (same in both themes) ───────────────────────────
 abstract final class AppColors {
-  // Score colors (1–5)
+  // Score colors (1–5) — kept distinct for accessibility
   static const score1  = Color(0xFFD55E00);
   static const score2  = Color(0xFFC07830);
   static const score3  = Color(0xFF56B4E9);
@@ -99,17 +100,18 @@ abstract final class AppColors {
     const Color(0x3334D399),
   ];
 
-  // Accent
-  static const indigo  = Color(0xFF818CF8);
-  static const amber   = Color(0xFFC4A870);
-  static const red     = Color(0xFFEF6B6B);
-  static const orange  = Color(0xFFC07830);
+  // Accent — rosewood palette
+  static const indigo  = Color(0xFFBE8296); // muted rose (#be8296) — primary accent
+  static const rose    = Color(0xFF9D3E5C); // deep crimson-rose (#9d3e5c) — strong CTA
+  static const amber   = Color(0xFFC4A870); // warm amber — kept for contrast
+  static const red     = Color(0xFFEF6B6B); // error red — kept
+  static const orange  = Color(0xFFC07830); // warning orange — kept
 
   // Dimension line colors (for the chart)
-  static const dimOverall  = Color(0xFF818CF8);
-  static const dimSleep    = Color(0xFF56B4E9);
-  static const dimPhysical = Color(0xFF34D399);
-  static const dimFocus    = Color(0xFFC4A870);
+  static const dimOverall  = Color(0xFFBE8296); // muted rose
+  static const dimSleep    = Color(0xFF56B4E9); // sky blue — distinct
+  static const dimPhysical = Color(0xFF34D399); // teal-green — distinct
+  static const dimFocus    = Color(0xFFC4A870); // warm amber — distinct
 }
 
 // ── AppColors extension on BuildContext ────────────────────────────────────
@@ -150,7 +152,7 @@ extension AppColorsX on BuildContext {
 
 // ── ThemeData factories ────────────────────────────────────────────────────
 abstract final class AppTheme {
-  static ThemeData dark() => _build(Brightness.dark, AppColorsDark.bg);
+  static ThemeData dark()  => _build(Brightness.dark,  AppColorsDark.bg);
   static ThemeData light() => _build(Brightness.light, AppColorsLight.bg);
 
   static ThemeData _build(Brightness brightness, Color scaffoldBg) {
@@ -163,7 +165,7 @@ abstract final class AppTheme {
       ),
       colorScheme: ColorScheme.fromSeed(
         brightness: brightness,
-        seedColor: AppColors.indigo,
+        seedColor: AppColors.indigo, // #be8296 rose — generates rosewood ColorScheme
         surface: brightness == Brightness.dark ? AppColorsDark.bgc : AppColorsLight.bgc,
       ),
     );
