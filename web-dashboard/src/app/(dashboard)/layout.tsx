@@ -92,8 +92,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-sidebar-foreground">Welfare Monitor</h2>
-              <p className="text-xs text-muted-foreground">CAPF System</p>
+              <h2 className="text-sm font-semibold text-sidebar-foreground leading-snug">Welfare Monitor</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">CAPF System</p>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
@@ -158,7 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-sm font-semibold">Welfare Monitor</span>
         </div>
 
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
+        <div className="p-6 lg:p-10 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );

@@ -112,16 +112,16 @@ export default function ActionsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Intervention Actions</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-muted-foreground text-[13px] mt-1.5 leading-relaxed">
           Execute welfare recommendations and track intervention progress
         </p>
       </div>
 
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {ACTION_CARDS.map((card, i) => (
           <Card
             key={i}
@@ -132,8 +132,8 @@ export default function ActionsPage() {
               <div className={`w-12 h-12 rounded-xl ${card.bgColor} flex items-center justify-center ${card.color} mb-4 group-hover:scale-110 transition-transform`}>
                 {card.icon}
               </div>
-              <h3 className="font-semibold text-sm mb-1">{card.title}</h3>
-              <p className="text-xs text-muted-foreground">{card.description}</p>
+              <h3 className="font-semibold text-[14px] mb-1.5">{card.title}</h3>
+              <p className="text-[13px] text-muted-foreground leading-relaxed">{card.description}</p>
             </CardContent>
           </Card>
         ))}
@@ -143,11 +143,11 @@ export default function ActionsPage() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Pending Recommendations</h2>
-          <Badge variant="outline" className="text-xs">{pending.length}</Badge>
+          <Badge variant="outline" className="text-[11px]">{pending.length}</Badge>
         </div>
         {pending.length === 0 ? (
           <Card className="glass-card">
-            <CardContent className="py-8 text-center text-muted-foreground text-sm">
+            <CardContent className="py-8 text-center text-muted-foreground text-[13px]">
               All recommendations have been addressed. ✓
             </CardContent>
           </Card>
@@ -159,28 +159,28 @@ export default function ActionsPage() {
                 <CardContent className="py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${risk.class}`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold border ${risk.class}`}>
                         {risk.label}
                       </span>
-                      <span className="text-sm font-medium">{entry.full_name}</span>
-                      <span className="text-xs text-muted-foreground">{entry.unit}</span>
+                      <span className="text-[13px] font-medium">{entry.full_name}</span>
+                      <span className="text-[12px] text-muted-foreground">{entry.unit}</span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleAction(entry.assessment_id, "Acknowledged")}
-                        className="px-3 py-1.5 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-md bg-primary/10 text-primary text-[12px] font-medium hover:bg-primary/20 transition-colors cursor-pointer"
                       >
                         Acknowledge
                       </button>
                       <button
                         onClick={() => handleAction(entry.assessment_id, "Action_Taken")}
-                        className="px-3 py-1.5 rounded-md bg-risk-routine/10 text-risk-routine text-xs font-medium hover:bg-risk-routine/20 transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-md bg-risk-routine/10 text-risk-routine text-[12px] font-medium hover:bg-risk-routine/20 transition-colors cursor-pointer"
                       >
                         Complete
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">{entry.recommended_intervention}</p>
+                  <p className="text-[13px] text-muted-foreground mt-2.5 leading-relaxed">{entry.recommended_intervention}</p>
                 </CardContent>
               </Card>
             );
@@ -189,23 +189,23 @@ export default function ActionsPage() {
       </div>
 
       {/* Completed actions summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <Card className="glass-card">
           <CardContent className="py-6 text-center">
             <p className="text-3xl font-bold text-risk-intervention">{pending.length}</p>
-            <p className="text-sm text-muted-foreground mt-1">Pending</p>
+            <p className="text-sm text-muted-foreground mt-1.5">Pending</p>
           </CardContent>
         </Card>
         <Card className="glass-card">
           <CardContent className="py-6 text-center">
             <p className="text-3xl font-bold text-risk-monitor">{acknowledged.length}</p>
-            <p className="text-sm text-muted-foreground mt-1">In Progress</p>
+            <p className="text-sm text-muted-foreground mt-1.5">In Progress</p>
           </CardContent>
         </Card>
         <Card className="glass-card">
           <CardContent className="py-6 text-center">
             <p className="text-3xl font-bold text-risk-routine">{completed.length}</p>
-            <p className="text-sm text-muted-foreground mt-1">Completed</p>
+            <p className="text-sm text-muted-foreground mt-1.5">Completed</p>
           </CardContent>
         </Card>
       </div>

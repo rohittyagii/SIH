@@ -34,6 +34,7 @@ export default function OverviewPage() {
   const [trends, setTrends] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [assessing, setAssessing] = useState(false);
+  const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -100,12 +101,12 @@ export default function OverviewPage() {
   ].filter((d) => d.value > 0);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Unit Overview</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-[13px] mt-1.5 leading-relaxed">
             Aggregated welfare indicators across {summaries.length} unit{summaries.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -134,13 +135,13 @@ export default function OverviewPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <Card className="glass-card stat-card-glow animate-slide-up">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Personnel</p>
-                <p className="text-3xl font-bold mt-1">{totals.personnel}</p>
+                <p className="text-[13px] text-muted-foreground font-medium">Total Personnel</p>
+                <p className="text-3xl font-bold mt-1.5">{totals.personnel}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -155,8 +156,8 @@ export default function OverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Duty Hours/Week</p>
-                <p className="text-3xl font-bold mt-1">{avgDuty}<span className="text-lg text-muted-foreground">h</span></p>
+                <p className="text-[13px] text-muted-foreground font-medium">Avg Duty Hours/Week</p>
+                <p className="text-3xl font-bold mt-1.5">{avgDuty}<span className="text-lg text-muted-foreground ml-0.5">h</span></p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-chart-3/10 flex items-center justify-center">
                 <svg className="w-6 h-6 text-chart-3" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -171,8 +172,8 @@ export default function OverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Days Since Leave</p>
-                <p className="text-3xl font-bold mt-1">{avgLeave}<span className="text-lg text-muted-foreground">d</span></p>
+                <p className="text-[13px] text-muted-foreground font-medium">Avg Days Since Leave</p>
+                <p className="text-3xl font-bold mt-1.5">{avgLeave}<span className="text-lg text-muted-foreground ml-0.5">d</span></p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-chart-5/10 flex items-center justify-center">
                 <svg className="w-6 h-6 text-chart-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -187,8 +188,8 @@ export default function OverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Mood Score</p>
-                <p className="text-3xl font-bold mt-1">{avgMood}<span className="text-lg text-muted-foreground">/10</span></p>
+                <p className="text-[13px] text-muted-foreground font-medium">Avg Mood Score</p>
+                <p className="text-3xl font-bold mt-1.5">{avgMood}<span className="text-lg text-muted-foreground ml-0.5">/10</span></p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-chart-2/10 flex items-center justify-center">
                 <svg className="w-6 h-6 text-chart-2" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -201,56 +202,98 @@ export default function OverviewPage() {
       </div>
 
       {/* Risk Distribution + Trend Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
         {/* Pie Chart */}
         <Card className="glass-card animate-slide-up" style={{ animationDelay: "0.4s" }}>
           <CardHeader>
-            <CardTitle className="text-base">Risk Distribution</CardTitle>
+            <CardTitle className="text-[15px] font-semibold">Risk Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} stroke="transparent" />
+            {(() => {
+              const total = pieData.reduce((s, d) => s + d.value, 0);
+              if (total === 0) return <p className="text-muted-foreground text-center py-8">No data</p>;
+
+              const svgW = 300, svgH = 180;
+              const cxP = svgW / 2, cyP = 70;
+              const rxP = 100, ryP = 55;
+              const depthH = 24;
+
+              let acc = -Math.PI / 2;
+              const slices = pieData.map((d, i) => {
+                const a = (d.value / total) * Math.PI * 2;
+                const s = { ...d, i, sa: acc, ea: acc + a, ma: acc + a / 2 };
+                acc += a;
+                return s;
+              });
+
+              const sorted = [...slices].sort((a, b) => Math.sin(a.ma) - Math.sin(b.ma));
+
+              const ex = (a: number) => cxP + rxP * Math.cos(a);
+              const ey = (a: number, yo = 0) => cyP + ryP * Math.sin(a) + yo;
+              const lf = (sa: number, ea: number) => (ea - sa > Math.PI ? 1 : 0);
+
+              const topPath = (s: typeof slices[0]) =>
+                `M${cxP},${cyP} L${ex(s.sa)},${ey(s.sa)} A${rxP},${ryP} 0 ${lf(s.sa, s.ea)} 1 ${ex(s.ea)},${ey(s.ea)} Z`;
+
+              const sidePath = (s: typeof slices[0]) => {
+                const x1 = ex(s.sa), y1t = ey(s.sa), y1b = ey(s.sa, depthH);
+                const x2 = ex(s.ea), y2t = ey(s.ea), y2b = ey(s.ea, depthH);
+                return `M${x1},${y1t} A${rxP},${ryP} 0 ${lf(s.sa, s.ea)} 1 ${x2},${y2t} L${x2},${y2b} A${rxP},${ryP} 0 ${lf(s.sa, s.ea)} 0 ${x1},${y1b} Z`;
+              };
+
+              return (
+                <>
+                  <div className="flex justify-center">
+                    <svg width={svgW} height={svgH + depthH + 10} viewBox={`0 0 ${svgW} ${svgH + depthH + 10}`}
+                      onMouseLeave={() => setHoveredSlice(null)}
+                    >
+                      {sorted.map((s) => {
+                        const isH = hoveredSlice === s.i;
+                        return (
+                          <g
+                            key={s.i}
+                            onMouseEnter={() => setHoveredSlice(s.i)}
+                            style={{ cursor: "pointer", transition: "opacity 0.15s" }}
+                          >
+                            <path d={sidePath(s)} fill={s.color} opacity={isH ? 0.7 : 0.45} />
+                            <path
+                              d={topPath(s)}
+                              fill={s.color}
+                              opacity={isH ? 1 : 0.85}
+                              stroke={isH ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.15)"}
+                              strokeWidth={isH ? 2 : 1}
+                            />
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className="h-7 flex items-center justify-center">
+                    {hoveredSlice !== null && pieData[hoveredSlice] && (
+                      <p className="text-[14px] font-semibold animate-fade-in" style={{ color: pieData[hoveredSlice].color }}>
+                        {pieData[hoveredSlice].name} = {pieData[hoveredSlice].value}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-3 justify-center mt-1">
+                    {pieData.map((d) => (
+                      <div key={d.name} className="flex items-center gap-2 text-[13px]">
+                        <div className="w-3 h-3 rounded-full" style={{ background: d.color }} />
+                        <span className="text-muted-foreground">{d.name}</span>
+                        <span className="font-semibold">{d.value}</span>
+                      </div>
                     ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-wrap gap-3 justify-center mt-2">
-              {pieData.map((d) => (
-                <div key={d.name} className="flex items-center gap-1.5 text-xs">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
-                  <span className="text-muted-foreground">{d.name}</span>
-                  <span className="font-semibold">{d.value}</span>
-                </div>
-              ))}
-            </div>
+                  </div>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
 
         {/* Trend Chart */}
         <Card className="glass-card lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.5s" }}>
           <CardHeader>
-            <CardTitle className="text-base">Wellness Trend (26 Weeks)</CardTitle>
+            <CardTitle className="text-[15px] font-semibold">Wellness Trend (26 Weeks)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[280px]">
@@ -297,13 +340,13 @@ export default function OverviewPage() {
       {/* Per-Unit Breakdown */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Unit Breakdown</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {summaries.map((s) => (
             <Card key={s.unit_name} className="glass-card animate-slide-up">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm">{s.unit_name}</h3>
-                  <Badge variant="secondary" className="text-xs">{s.total_personnel} personnel</Badge>
+                  <h3 className="font-semibold text-[14px]">{s.unit_name}</h3>
+                  <Badge variant="secondary" className="text-[11px]">{s.total_personnel} personnel</Badge>
                 </div>
 
                 {/* Mini risk bar */}
@@ -328,7 +371,7 @@ export default function OverviewPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-xs text-center">
+                <div className="grid grid-cols-3 gap-2 text-[13px] text-center">
                   <div>
                     <span className="block font-bold text-lg" style={{ color: RISK_COLORS.routine }}>{s.routine_count}</span>
                     <span className="text-muted-foreground">Routine</span>
@@ -343,7 +386,7 @@ export default function OverviewPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-border/50 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                <div className="mt-4 pt-3 border-t border-border/50 grid grid-cols-3 gap-2 text-[13px] text-muted-foreground">
                   <div>
                     <span className="block font-medium text-foreground">{s.avg_duty_hours.toFixed(1)}h</span>
                     Avg Duty

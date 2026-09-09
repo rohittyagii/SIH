@@ -50,14 +50,14 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Personnel Welfare System
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm">
+          <p className="text-muted-foreground mt-2.5 text-[13px] leading-relaxed">
             Secure access for authorized welfare & command personnel
           </p>
         </div>
 
         <Card className="glass-card animate-slide-up">
           <CardHeader className="pb-4">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-[13px] text-muted-foreground text-center">
               Sign in with your credentials
             </p>
           </CardHeader>
@@ -115,7 +115,7 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-6 pt-4 border-t border-border/50">
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-[12px] text-muted-foreground text-center leading-relaxed">
                 🔒 All data is encrypted and access is logged.
                 <br />
                 Unauthorized access is a punishable offense.
@@ -126,8 +126,8 @@ export default function LoginPage() {
 
         {/* Demo credentials hint */}
         <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border/30 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-          <p className="text-xs text-muted-foreground text-center font-medium mb-2">Demo Credentials</p>
-          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground text-center font-medium mb-2">Demo Credentials</p>
+          <div className="grid grid-cols-2 gap-2.5 text-[12px] text-muted-foreground">
             <div>
               <span className="font-medium text-foreground/70">Commander:</span> cmd_sharma
             </div>

@@ -93,10 +93,10 @@ export default function TriagePage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Welfare Triage Grid</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-muted-foreground text-[13px] mt-1.5 leading-relaxed">
           Personnel requiring welfare attention, ordered by priority
         </p>
       </div>
@@ -112,7 +112,7 @@ export default function TriagePage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+            className={`px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
               filter === f.key
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-accent"
@@ -131,7 +131,7 @@ export default function TriagePage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filtered.map((entry, i) => {
             const risk = riskConfig[entry.risk_level] || riskConfig.Routine;
             const status = statusConfig[entry.status] || statusConfig.Pending;
@@ -150,37 +150,37 @@ export default function TriagePage() {
                         {entry.full_name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{entry.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{entry.service_id} • {entry.unit}</p>
+                        <p className="font-medium text-[13px]">{entry.full_name}</p>
+                        <p className="text-[12px] text-muted-foreground mt-0.5">{entry.service_id} • {entry.unit}</p>
                       </div>
                     </div>
 
                     {/* Risk badge */}
                     <div className="lg:w-36 shrink-0">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${risk.class}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-semibold border ${risk.class}`}>
                         {risk.label}
                       </span>
                     </div>
 
                     {/* Factors & Recommendation */}
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        <span className="font-medium text-foreground/80">Factors:</span> {entry.contributing_factors}
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">
+                        <span className="font-medium text-foreground/90">Factors:</span> {entry.contributing_factors}
                       </p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        <span className="font-medium text-foreground/80">Recommended:</span> {entry.recommended_intervention}
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">
+                        <span className="font-medium text-foreground/90">Recommended:</span> {entry.recommended_intervention}
                       </p>
                     </div>
 
                     {/* Status & Actions */}
                     <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <Badge variant={status.variant} className="text-xs">
+                      <Badge variant={status.variant} className="text-[11px]">
                         {status.label}
                       </Badge>
                       {entry.status === "Pending" && (
                         <button
                           onClick={() => handleAction(entry.assessment_id, "Acknowledged")}
-                          className="px-3 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-md bg-primary/10 text-primary text-[12px] font-medium hover:bg-primary/20 transition-colors cursor-pointer"
                         >
                           Acknowledge
                         </button>
@@ -188,7 +188,7 @@ export default function TriagePage() {
                       {entry.status === "Acknowledged" && (
                         <button
                           onClick={() => handleAction(entry.assessment_id, "Action_Taken")}
-                          className="px-3 py-1 rounded-md bg-risk-routine/10 text-risk-routine text-xs font-medium hover:bg-risk-routine/20 transition-colors cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-md bg-risk-routine/10 text-risk-routine text-[12px] font-medium hover:bg-risk-routine/20 transition-colors cursor-pointer"
                         >
                           Mark Done
                         </button>

@@ -117,7 +117,7 @@
   --secondary: oklch(0.22 0.04 350);          /* deep rose secondary surface */
   --secondary-foreground: oklch(0.90 0.008 350);
   --muted: oklch(0.22 0.03 350);
-  --muted-foreground: oklch(0.65 0.04 350);
+  --muted-foreground: oklch(0.72 0.035 350);
   --accent: oklch(0.26 0.04 350);             /* deep rose accent surface */
   --accent-foreground: oklch(0.90 0.008 350);
   --destructive: oklch(0.65 0.20 25);
@@ -150,6 +150,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
     @apply font-sans;
@@ -159,7 +163,7 @@
 /* Custom utilities for the welfare system */
 @layer utilities {
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg;
+    @apply bg-card/90 backdrop-blur-xl border border-border/60 shadow-lg;
   }
 
   .risk-badge-routine {
