@@ -15,6 +15,8 @@ export const metadata: Metadata = {
     "AI-powered system for proactive identification of stress and burnout indicators in armed forces personnel. Privacy-first, welfare-focused.",
 };
 
+import { GoogleTranslate } from "@/components/google-translate";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,7 +24,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+        <GoogleTranslate />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
