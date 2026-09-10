@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_ITEMS = [
   {
@@ -136,12 +137,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </span>
               </div>
             </div>
-            <button
-              onClick={logout}
-              className="mt-3 w-full text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-md hover:bg-sidebar-accent transition-colors cursor-pointer"
-            >
-              Sign Out
-            </button>
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={logout}
+                className="flex-1 text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-md hover:bg-sidebar-accent transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </aside>
@@ -149,13 +153,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main className="flex-1 min-h-screen">
         {/* Mobile topbar */}
-        <div className="lg:hidden sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-lg hover:bg-accent">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          </button>
-          <span className="text-sm font-semibold">Welfare Monitor</span>
+        <div className="lg:hidden sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-lg hover:bg-accent text-foreground">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
+            <span className="text-sm font-semibold text-foreground">Welfare Monitor</span>
+          </div>
+          <ThemeToggle />
         </div>
 
         <div className="p-6 lg:p-10 max-w-7xl mx-auto">{children}</div>
