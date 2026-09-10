@@ -92,10 +92,11 @@ class StepPill {
 
 class ResourceItem {
   const ResourceItem(
-      {required this.title, required this.body, required this.color});
+      {required this.title, required this.body, required this.color, this.url});
   final String title;
   final String body;
   final Color color;
+  final String? url;
 }
 
 class Assurance {
@@ -183,15 +184,18 @@ const resources = [
   ResourceItem(
       title: 'Sleep tips',
       body: 'Strategies for better rest before long shifts',
-      color: Color(0xFF56B4E9)),
+      color: Color(0xFF56B4E9),
+      url: 'https://nimhans.ac.in/'),
   ResourceItem(
       title: 'Talk to peer support',
       body: 'Speak with a trained colleague, any time',
-      color: Color(0xFF818CF8)),
+      color: Color(0xFF818CF8),
+      url: 'tel:14416'),
   ResourceItem(
       title: 'Focus techniques',
       body: 'Short exercises to stay sharp on shift',
-      color: Color(0xFFC4A870)),
+      color: Color(0xFFC4A870),
+      url: 'https://ayush.gov.in/'),
 ];
 
 // ── Consent screen data ────────────────────────────────────────────────────

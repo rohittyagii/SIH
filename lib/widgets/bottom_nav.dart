@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
+import '../data/translations.dart';
 
 // ── Tab definition ─────────────────────────────────────────────────────────
 enum AppTab { home, trend, support, settings }
 
 // ── BottomNav ───────────────────────────────────────────────────────────────
-class BottomNav extends StatelessWidget {
+class BottomNav extends ConsumerWidget {
   const BottomNav({super.key, required this.active, required this.onTab});
   final AppTab active;
   final ValueChanged<AppTab> onTab;
@@ -19,7 +21,7 @@ class BottomNav extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: context.rrBgn,
@@ -40,7 +42,7 @@ class BottomNav extends StatelessWidget {
                   children: [
                     t.icon(size: 20, color: color),
                     const SizedBox(height: 3),
-                    Text(t.label,
+                    Text(tr(t.label, ref),
                       style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: color)),
                   ],
                 ),

@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/bottom_nav.dart';
 import '../providers/app_state.dart';
+import '../data/translations.dart';
 
 // ── HomeScreen ───────────────────────────────────────────────────────────────
 class HomeScreen extends ConsumerWidget {
@@ -66,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$_greeting,',
+                        Text('${tr(_greeting, ref)},',
                             style:
                                 TextStyle(fontSize: 14, color: context.rrT4)),
                         const SizedBox(height: 2),
@@ -109,7 +110,7 @@ class HomeScreen extends ConsumerWidget {
                                   children: [
                                     const IconFlame(size: 12, color: AppColors.indigo),
                                     const SizedBox(width: 4),
-                                    Text('Day $streak',
+                                    Text('${tr('Day', ref)} $streak',
                                         style: const TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
@@ -145,8 +146,8 @@ class HomeScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Text(
                               todayDone
-                                  ? 'Checked in today'
-                                  : 'Not yet checked in today',
+                                  ? tr('Checked in today', ref)
+                                  : tr('Not yet checked in today', ref),
                               style: TextStyle(
                                   fontSize: 13,
                                   color: todayDone
@@ -186,8 +187,8 @@ class HomeScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               todayDone
-                                  ? "View today's entry"
-                                  : "Start today's check-in",
+                                  ? tr("View today's entry", ref)
+                                  : tr("Start today's check-in", ref),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 17,
@@ -204,10 +205,10 @@ class HomeScreen extends ConsumerWidget {
                         // Quick links
                         Column(
                           children: [
-                            _quickLink(context, 'View my trend',
+                            _quickLink(context, tr('View my trend', ref),
                                 AppColors.indigo, () => onTab(AppTab.trend)),
                             const SizedBox(height: 18),
-                            _quickLink(context, 'Resources & support',
+                            _quickLink(context, tr('Resources & support', ref),
                                 context.rrT4, () => onTab(AppTab.support)),
                           ],
                         ),

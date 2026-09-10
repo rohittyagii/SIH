@@ -5,6 +5,7 @@ import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/score_dots.dart';
+import '../data/translations.dart';
 
 // ── OfflineSubmittedScreen ────────────────────────────────────────────────────
 class OfflineSubmittedScreen extends ConsumerWidget {
@@ -82,7 +83,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 22),
-                  Text('Saved on your device',
+                  Text(tr('Saved on your device', ref),
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
@@ -95,7 +96,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                       textAlign: TextAlign.center),
                   const SizedBox(height: 14),
                   Text(
-                    "You're offline right now. This check-in is stored locally and will sync automatically when your connection is restored.",
+                    tr("You're offline right now. This check-in is stored locally and will sync automatically when your connection is restored.", ref),
                     style: TextStyle(
                         fontSize: 14, color: context.rrT3, height: 1.65),
                     textAlign: TextAlign.center,
@@ -110,13 +111,13 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                       color: _amber.withValues(alpha: 0.08),
                       border: Border.all(color: _amber.withValues(alpha: 0.22)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconNoWifi(size: 11, color: _amber),
-                        SizedBox(width: 7),
-                        Text('Offline · Syncs when reconnected',
-                            style: TextStyle(
+                        const IconNoWifi(size: 11, color: _amber),
+                        const SizedBox(width: 7),
+                        Text(tr('Offline · Syncs when reconnected', ref),
+                            style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 color: _amber)),
@@ -129,7 +130,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('WHAT YOU LOGGED',
+                        Text(tr('WHAT YOU LOGGED', ref),
                             style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -151,7 +152,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                                   dimIcon(d.key, size: 15, color: col),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                      child: Text(d.label,
+                                      child: Text(tr(d.label, ref),
                                           style: TextStyle(
                                               fontSize: 13,
                                               color: context.rrT3))),
@@ -159,7 +160,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                                   const SizedBox(width: 8),
                                   SizedBox(
                                     width: 68,
-                                    child: Text(scoreLabel(s),
+                                    child: Text(tr(scoreLabel(s), ref),
                                         style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w500,
@@ -184,7 +185,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                       border: Border.all(color: context.rrDv),
                     ),
                     child: Text(
-                      'Nothing is lost. Your data is on this device and will appear in your trend as soon as the sync completes.',
+                      tr('Nothing is lost. Your data is on this device and will appear in your trend as soon as the sync completes.', ref),
                       style: TextStyle(
                           fontSize: 12, color: context.rrT4, height: 1.65),
                     ),
@@ -200,9 +201,9 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(13),
                         color: AppColors.indigo.withValues(alpha: 0.09),
                       ),
-                      child: const Center(
-                        child: Text('Back to home',
-                            style: TextStyle(
+                      child: Center(
+                        child: Text(tr('Back to home', ref),
+                            style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.indigo)),

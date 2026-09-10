@@ -53,6 +53,17 @@ class AuthService {
     await _api.clearToken();
   }
 
+  Future<void> changePin(String currentPin, String newPin) async {
+    try {
+      await _api.dio.post('/auth/mobile/change-pin', data: {
+        'current_pin': currentPin,
+        'new_pin': newPin,
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> updatePreferences(Map<String, dynamic> prefs) async {
     try {
       await _api.dio.patch('/users/me/preferences', data: prefs);

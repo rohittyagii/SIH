@@ -5,6 +5,8 @@ import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/score_dots.dart';
+import '../providers/app_state.dart';
+import '../data/translations.dart';
 
 // ── SubmittedScreen ───────────────────────────────────────────────────────────
 class SubmittedScreen extends ConsumerWidget {
@@ -39,7 +41,7 @@ class SubmittedScreen extends ConsumerWidget {
                 child: const Center(child: IconCheck(size: 30, color: AppColors.score5)),
               ),
               const SizedBox(height: 28),
-              Text('Readiness logged',
+              Text(tr('Readiness logged', ref),
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: context.rrT1),
                 textAlign: TextAlign.center),
               const SizedBox(height: 6),
@@ -63,12 +65,12 @@ class SubmittedScreen extends ConsumerWidget {
                             children: [
                               dimIcon(d.key, size: 15, color: col),
                               const SizedBox(width: 12),
-                              Expanded(child: Text(d.label, style: TextStyle(fontSize: 13, color: context.rrT3))),
+                              Expanded(child: Text(tr(d.label, ref), style: TextStyle(fontSize: 13, color: context.rrT3))),
                               ScoreDots(score: s),
                               const SizedBox(width: 8),
                               SizedBox(
                                 width: 72,
-                                child: Text(scoreLabel(s),
+                                child: Text(tr(scoreLabel(s), ref),
                                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: col),
                                   textAlign: TextAlign.right),
                               ),
@@ -84,7 +86,7 @@ class SubmittedScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Note', style: TextStyle(fontSize: 11, color: context.rrT6)),
+                            Text(tr('Note', ref), style: TextStyle(fontSize: 11, color: context.rrT6)),
                             const SizedBox(height: 4),
                             Text(note, style: TextStyle(fontSize: 13, color: context.rrT2b, height: 1.6)),
                           ],
@@ -103,21 +105,21 @@ class SubmittedScreen extends ConsumerWidget {
                   color: AppColors.indigo.withValues(alpha: 0.09),
                   border: Border.all(color: AppColors.indigo.withValues(alpha: 0.20)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconFlame(size: 13, color: AppColors.indigo),
-                    SizedBox(width: 8),
-                    Text('13-day streak — well done',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.indigo)),
+                    const IconFlame(size: 13, color: AppColors.indigo),
+                    const SizedBox(width: 8),
+                    Text('${ref.watch(streakProvider)}-day streak — well done',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.indigo)),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
               GestureDetector(
                 onTap: onDone,
-                child: const Text('Back to home',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.indigo)),
+                child: Text(tr('Back to home', ref),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.indigo)),
               ),
             ],
           ),

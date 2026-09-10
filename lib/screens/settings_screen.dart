@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../providers/app_state.dart';
 import '../data/translations.dart';
 import 'data_handling_screen.dart';
+import 'change_pin_screen.dart';
 
 // ── Shared sub-widgets ─────────────────────────────────────────────────────
 
@@ -108,10 +109,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Language _getCurrentLang(String code) => languages
       .firstWhere((l) => l.code == code, orElse: () => languages.first);
 
-  String get _reminderLabel {
+  String _getReminderLabel() {
     final h = _reminderTime.hour.toString().padLeft(2, '0');
     final m = _reminderTime.minute.toString().padLeft(2, '0');
-    return '$h:$m daily';
+    return '$h:$m ${tr('daily', ref)}';
   }
 
   Future<void> _toggleReminder() async {
@@ -183,8 +184,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             const SizedBox(height: 2),
                             Text(
                                 widget.isDark
-                                    ? 'Low-light interface'
-                                    : 'High-contrast interface',
+                                    ? tr('Low-light interface', ref)
+                                    : tr('High-contrast interface', ref),
                                 style: TextStyle(
                                     fontSize: 12, color: context.rrT4)),
                           ],
@@ -223,7 +224,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _SettingRow(
                         label: tr('PIN & biometrics', ref),
                         value: tr('Configured', ref),
-                        arrow: true),
+                        arrow: true,
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => const ChangePinScreen(),
+                          ));
+                        }),
                   ],
                 ),
               ),
@@ -354,7 +360,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             size: 14,
                             color: _reminder ? AppColors.indigo : context.rrT6),
                         tr('Daily reminder', ref),
-                        _reminderLabel,
+                        _getReminderLabel(),
                         _reminder,
                         _toggleReminder,
                         true),
@@ -365,7 +371,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             color:
                                 _syncAlerts ? AppColors.indigo : context.rrT6),
                         tr('Sync alerts', ref),
-                        'When offline data syncs',
+                        tr('When offline data syncs', ref),
                         _syncAlerts,
                         () => setState(() => _syncAlerts = !_syncAlerts),
                         false),
@@ -377,7 +383,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 ? AppColors.indigo
                                 : context.rrT6),
                         tr('Weekly summary', ref),
-                        'Mondays at 08:00',
+                        tr('Mondays at 08:00', ref),
                         _weeklySummary,
                         () => setState(() => _weeklySummary = !_weeklySummary),
                         false),
@@ -437,7 +443,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     _SettingRow(
                         label: tr('App version', ref), value: '1.0.0', first: true),
-                    _SettingRow(label: tr('Unit programme', ref), value: 'Bravo Wing'),
+                    _SettingRow(label: tr('Unit programme', ref), value: tr('Eastern Command', ref)),
                   ],
                 ),
               ),
@@ -539,14 +545,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Sign out of READINESS?',
-                        style: TextStyle(
+                    Text(tr('Sign out of READINESS?', ref),
+                        style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFFEF6B6B))),
                     const SizedBox(height: 4),
                     Text(
-                        'The app will lock. Your data stays on this device — sign back in with your PIN to continue.',
+                        tr('The app will lock. Your data stays on this device — sign back in with your PIN to continue.', ref),
                         style: TextStyle(
                             fontSize: 12, color: context.rrT5, height: 1.6)),
                   ],
@@ -588,27 +594,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               border: Border.all(
                   color: const Color(0xFFC07830).withValues(alpha: 0.22)),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                const Padding(
                     padding: EdgeInsets.only(top: 1),
                     child:
                         IconAlertTriangle(size: 14, color: Color(0xFFC07830))),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Deactivate this device?',
-                        style: TextStyle(
+                    Text(tr('Deactivate this device?', ref),
+                        style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFFC4A870))),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                        "This will unlink the device from your unit. Your check-in history will be removed locally. You'll need a new activation code to use the app again.",
-                        style: TextStyle(
+                        tr("This will unlink the device from your unit. Your check-in history will be removed locally. You'll need a new activation code to use the app again.", ref),
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF7A8A6A),
                             height: 1.6)),
@@ -653,14 +659,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Delete all my data?',
-                        style: TextStyle(
+                    Text(tr('Delete all my data?', ref),
+                        style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFFEF6B6B))),
                     const SizedBox(height: 4),
                     Text(
-                        'This action is irreversible. All your check-in history, metrics, and assessments will be permanently erased from our servers.',
+                        tr('This action is irreversible. All your check-in history, metrics, and assessments will be permanently erased from our servers.', ref),
                         style: TextStyle(
                             fontSize: 12, color: context.rrT5, height: 1.6)),
                   ],

@@ -2,24 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../providers/app_state.dart';
 import '../services/calendar_service.dart';
+import '../data/translations.dart';
 
 // ── ResourceList ─────────────────────────────────────────────────────────────
-class _ResourceList extends StatelessWidget {
+class _ResourceList extends ConsumerWidget {
   const _ResourceList();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return RrCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SUGGESTED FOR YOU',
+          Text(tr('SUGGESTED FOR YOU', ref),
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: context.rrT6, letterSpacing: 0.10)),
           const SizedBox(height: 14),
           ...resources.asMap().entries.map((e) {
@@ -28,30 +30,41 @@ class _ResourceList extends StatelessWidget {
             return Column(
               children: [
                 if (i > 0) Divider(color: context.rrDv, height: 24),
-                Row(
-                  children: [
-                    Container(
-                      width: 34, height: 34,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: r.color.withValues(alpha: 0.094),
+                GestureDetector(
+                  onTap: () async {
+                    if (r.url != null) {
+                      final uri = Uri.parse(r.url!);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      }
+                    }
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34, height: 34,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: r.color.withValues(alpha: 0.094),
+                        ),
+                        child: Center(child: _resourceIcon(r, context)),
                       ),
-                      child: Center(child: _resourceIcon(r, context)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(r.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.rrT2)),
-                          const SizedBox(height: 2),
-                          Text(r.body, style: TextStyle(fontSize: 12, color: context.rrT3, height: 1.4)),
-                        ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(tr(r.title, ref), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.rrT2)),
+                            const SizedBox(height: 2),
+                            Text(tr(r.body, ref), style: TextStyle(fontSize: 12, color: context.rrT3, height: 1.4)),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconChevronRight(size: 13, color: context.rrT6),
-                  ],
+                      const SizedBox(width: 8),
+                      IconChevronRight(size: 13, color: context.rrT6),
+                    ],
+                  ),
                 ),
               ],
             );
@@ -68,12 +81,65 @@ class _ResourceList extends StatelessWidget {
   }
 }
 
+// ── BiometricsCard ────────────────────────────────────────────────────────────
+class _BiometricsCard extends ConsumerWidget {
+  const _BiometricsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Simulated HRV data point
+    return RrCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(tr('BIOMETRICS (SIMULATED)', ref),
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: context.rrT6,
+                      letterSpacing: 0.10)),
+              IconActivity(size: 14, color: context.rrT6),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Text('48', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w600, color: AppColors.indigo, height: 1.0)),
+              const SizedBox(width: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Text('ms', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.rrT4)),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.score2.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('HRV down 12% vs baseline', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.score2)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('Heart Rate Variability (HRV) metrics are securely synced from your connected wearable device.',
+              style: TextStyle(fontSize: 12, color: context.rrT4, height: 1.4)),
+        ],
+      ),
+    );
+  }
+}
+
 // ── TrendChart ────────────────────────────────────────────────────────────────
-class _TrendChart extends StatelessWidget {
+class _TrendChart extends ConsumerWidget {
   const _TrendChart();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final data = buildThirtyDayData();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tickColor = isDark ? const Color(0xFF384C5E) : const Color(0xFF8898A8);
@@ -90,7 +156,7 @@ class _TrendChart extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('30-DAY OVERVIEW',
+                Text(tr('30-DAY OVERVIEW', ref),
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: context.rrT6, letterSpacing: 0.10)),
                 const SizedBox(width: 8),
                 // Legend
@@ -104,7 +170,7 @@ class _TrendChart extends StatelessWidget {
                       children: [
                         Container(width: 14, height: 2, decoration: BoxDecoration(borderRadius: BorderRadius.circular(1), color: dimColors[d.key])),
                         const SizedBox(width: 4),
-                        Text(d.label.split(' ')[0], style: TextStyle(fontSize: 10, color: context.rrT4)),
+                        Text(tr(d.label, ref).split(' ')[0], style: TextStyle(fontSize: 10, color: context.rrT4)),
                       ],
                     )).toList(),
                   ),
@@ -155,7 +221,7 @@ class _TrendChart extends StatelessWidget {
                       final dim = dims[s.barIndex];
                       final col = dimColors[dim.key]!;
                       return LineTooltipItem(
-                        '${dim.label.split(' ')[0]}: ${s.y.toInt()}',
+                        '${tr(dim.label, ref).split(' ')[0]}: ${s.y.toInt()}',
                         TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.w600),
                       );
                     }).toList(),
@@ -208,7 +274,7 @@ class _DeviceCalendarCardState extends ConsumerState<_DeviceCalendarCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('UPCOMING CALENDAR',
+              Text(tr('UPCOMING CALENDAR', ref),
                   style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -323,7 +389,7 @@ class TrendScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Heading row
-              Text('My trend',
+              Text(tr('My trend', ref),
                   style: TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
               const SizedBox(height: 4),
@@ -333,8 +399,8 @@ class TrendScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       streak > 0
-                          ? 'Last 7 entries · $streak-day streak'
-                          : 'Last 7 entries',
+                          ? '${tr('Last 7 entries', ref)} · $streak-day streak'
+                          : tr('Last 7 entries', ref),
                       style: TextStyle(fontSize: 13, color: context.rrT4),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -345,7 +411,7 @@ class TrendScreen extends ConsumerWidget {
                     children: [
                       IconLock(size: 10, color: context.rrT7),
                       const SizedBox(width: 5),
-                      Text('Visible only to you',
+                      Text(tr('Visible only to you', ref),
                           style: TextStyle(fontSize: 11, color: context.rrT6)),
                     ],
                   ),
@@ -360,7 +426,7 @@ class TrendScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('7-day average',
+                    Text(tr('7-day average', ref),
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -385,7 +451,7 @@ class TrendScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(d.label,
+                                Text(tr(d.label, ref),
                                     style: TextStyle(fontSize: 11, color: context.rrT4)),
                                 Row(
                                   children: [
@@ -409,6 +475,9 @@ class TrendScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              // Biometrics (HRV)
+              const _BiometricsCard(),
               const SizedBox(height: 12),
               // Device calendar events
               const _DeviceCalendarCard(),
@@ -436,7 +505,7 @@ class TrendScreen extends ConsumerWidget {
                                       fontWeight: FontWeight.w500,
                                       color: context.rrT2)),
                             ]),
-                            Text(scoreLabel(entry.overall),
+                            Text(tr(scoreLabel(entry.overall), ref),
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,

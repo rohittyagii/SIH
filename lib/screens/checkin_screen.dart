@@ -5,16 +5,17 @@ import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/scale_picker.dart';
+import '../data/translations.dart';
 
 // ── DimCard ──────────────────────────────────────────────────────────────────
-class _DimCard extends StatelessWidget {
+class _DimCard extends ConsumerWidget {
   const _DimCard({required this.dim, required this.value, required this.onChanged});
   final Dim dim;
   final int value;
   final ValueChanged<int> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final col = value > 0 ? scoreColor(value) : context.rrT4;
     return RrCard(
       child: Column(
@@ -32,17 +33,17 @@ class _DimCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(dim.label,
+                    Text(tr(dim.label, ref),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: context.rrT1, height: 1.2)),
                     const SizedBox(height: 2),
-                    Text(dim.hint, style: TextStyle(fontSize: 12, color: context.rrT3)),
+                    Text(tr(dim.hint, ref), style: TextStyle(fontSize: 12, color: context.rrT3)),
                   ],
                 ),
               ),
               if (value > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Text(scoreLabel(value),
+                  child: Text(tr(scoreLabel(value), ref),
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: col)),
                 ),
             ],
@@ -111,7 +112,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.chevron_left, size: 16, color: context.rrT4),
-                    Text('Home', style: TextStyle(fontSize: 13, color: context.rrT4)),
+                    Text(tr('Home', ref), style: TextStyle(fontSize: 13, color: context.rrT4)),
                   ],
                 ),
               ),
@@ -119,10 +120,10 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
               // Heading
               Text('Thursday, 4 Sep 2026', style: TextStyle(fontSize: 13, color: context.rrT4)),
               const SizedBox(height: 4),
-              Text('Daily readiness check-in',
+              Text(tr('Daily readiness check-in', ref),
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600, color: context.rrT1, height: 1.2)),
               const SizedBox(height: 6),
-              Text('Private to you and your unit lead. Takes about a minute.',
+              Text(tr('Private to you and your unit lead. Takes about a minute.', ref),
                 style: TextStyle(fontSize: 13, color: context.rrT3)),
               const SizedBox(height: 12),
               // Dim cards
@@ -140,10 +141,10 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     RichText(text: TextSpan(
-                      text: 'Anything to add? ',
+                      text: tr('Anything to add? ', ref),
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.rrT2),
                       children: [
-                        TextSpan(text: '(optional)', style: TextStyle(fontWeight: FontWeight.w400, color: context.rrT4)),
+                        TextSpan(text: tr('(optional)', ref), style: TextStyle(fontWeight: FontWeight.w400, color: context.rrT4)),
                       ],
                     )),
                     const SizedBox(height: 12),
@@ -152,7 +153,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                       maxLines: 3,
                       maxLength: 200,
                       decoration: InputDecoration(
-                        hintText: 'Brief note for your record...',
+                        hintText: tr('Brief note for your record...', ref),
                         hintStyle: TextStyle(color: context.rrT6, fontSize: 14),
                         counterText: '',
                         filled: true,
@@ -202,7 +203,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      allDone ? "Log today's readiness" : "$filled of 4 complete",
+                      allDone ? tr("Log today's readiness", ref) : "$filled of 4 ${tr('complete', ref)}",
                       style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w600,
                         color: allDone ? const Color(0xFF0C1220) : AppColors.indigo.withValues(alpha: 0.45),

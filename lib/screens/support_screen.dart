@@ -5,6 +5,7 @@ import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../services/support_service.dart';
+import '../data/translations.dart';
 
 // ── SupportScreen ─────────────────────────────────────────────────────────────
 class SupportScreen extends ConsumerStatefulWidget {
@@ -29,13 +30,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
         _requested = true;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Callback requested. Your welfare officer will contact you shortly.'), backgroundColor: AppColors.score5)
+        SnackBar(content: Text(tr('Callback requested. Your welfare officer will contact you shortly.', ref)), backgroundColor: AppColors.score5)
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _requesting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to request callback. Please try again.'), backgroundColor: AppColors.score1)
+        SnackBar(content: Text(tr('Failed to request callback. Please try again.', ref)), backgroundColor: AppColors.score1)
       );
     }
   }
@@ -50,13 +51,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Resources & support',
+              Text(tr('Resources & support', ref),
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: context.rrT1)),
               const SizedBox(height: 4),
-              Text('Confidential support, available any time',
+              Text(tr('Confidential support, available any time', ref),
                   style: TextStyle(fontSize: 13, color: context.rrT4)),
               const SizedBox(height: 24),
               // Welfare officer card
@@ -82,14 +83,14 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Talk to your welfare officer',
+                              Text(tr('Talk to your welfare officer', ref),
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                       color: context.rrT1)),
                               const SizedBox(height: 4),
                               Text(
-                                  'Conversations are confidential unless you decide otherwise. No formal record is created.',
+                                  tr('Conversations are confidential unless you decide otherwise. No formal record is created.', ref),
                                   style: TextStyle(
                                       fontSize: 13,
                                       color: context.rrT3,
@@ -117,7 +118,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                         ),
                         child: Center(
                           child: Text(
-                              _requesting ? 'Requesting...' : _requested ? 'Callback Requested' : 'Contact welfare office',
+                              _requesting ? tr('Requesting...', ref) : _requested ? tr('Callback Requested', ref) : tr('Contact welfare office', ref),
                               style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -134,13 +135,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('24-hour support line',
+                    Text(tr('24-hour support line', ref),
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                             color: context.rrT1)),
                     const SizedBox(height: 4),
-                    Text('Free and confidential — any time, any day.',
+                    Text(tr('Free and confidential — any time, any day.', ref),
                         style: TextStyle(
                             fontSize: 13, color: context.rrT3, height: 1.6)),
                     const SizedBox(height: 16),
@@ -202,14 +203,14 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('About this service',
+                    Text(tr('About this service', ref),
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: context.rrT2)),
                     const SizedBox(height: 8),
                     Text(
-                        'Your check-ins are synchronized with your unit welfare dashboard to monitor overall readiness. Personal data is managed in accordance with policy.',
+                        tr('Your check-ins are synchronized with your unit welfare dashboard to monitor overall readiness. Personal data is managed in accordance with policy.', ref),
                         style: TextStyle(
                             fontSize: 13, color: context.rrT3, height: 1.6)),
                   ],

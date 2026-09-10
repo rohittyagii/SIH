@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../services/auth_service.dart';
+import '../data/translations.dart';
 
 const _pinLength = 6;
 enum _PinState { idle, checking, error, success }
@@ -247,7 +248,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 32),
-                        Text('READINESS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: context.rrT7, letterSpacing: 0.12)),
+                        Text(tr('READINESS', ref), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: context.rrT7, letterSpacing: 0.12)),
                         const SizedBox(height: 24),
                         Container(
                           width: 56, height: 56,
@@ -261,9 +262,9 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text('Welcome back', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: context.rrT2)),
+                        Text(tr('Welcome back', ref), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: context.rrT2)),
                         const SizedBox(height: 4),
-                        Text(_userName ?? 'Loading...', style: TextStyle(fontSize: 14, color: context.rrT5)),
+                        Text(_userName ?? tr('Loading...', ref), style: TextStyle(fontSize: 14, color: context.rrT5)),
                         const SizedBox(height: 32),
                         _PinDots(filled: _pin.length, state: _state),
                         const SizedBox(height: 16),
@@ -282,7 +283,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                           children: [
                             IconFingerprint(size: 28, color: context.rrT6),
                             const SizedBox(height: 6),
-                            Text('Use biometrics', style: TextStyle(fontSize: 12, color: context.rrT5)),
+                            Text(tr('Use biometrics', ref), style: TextStyle(fontSize: 12, color: context.rrT5)),
                           ],
                         ),
                       ),
@@ -292,7 +293,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                     padding: const EdgeInsets.only(bottom: 32),
                     child: GestureDetector(
                       onTap: widget.onSetupNew,
-                      child: Text('New device? Set up this device', style: TextStyle(fontSize: 11, color: context.rrT7)),
+                      child: Text(tr('New device? Set up this device', ref), style: TextStyle(fontSize: 11, color: context.rrT7)),
                     ),
                   ),
                 ],
@@ -306,11 +307,10 @@ class _PinScreenState extends ConsumerState<PinScreen> {
 
   Widget _stateLabel(BuildContext context) {
     switch (_state) {
-      case _PinState.error: return const Text('Incorrect PIN — try again', style: TextStyle(fontSize: 13, color: AppColors.score1));
-      case _PinState.checking: return Text('Verifying…', style: TextStyle(fontSize: 13, color: context.rrT6));
-      case _PinState.success: return const Text('Unlocked', style: TextStyle(fontSize: 13, color: AppColors.score5));
+      case _PinState.error: return Text(tr('Incorrect PIN — try again', ref), style: const TextStyle(fontSize: 13, color: AppColors.score1));
+      case _PinState.checking: return Text(tr('Verifying…', ref), style: TextStyle(fontSize: 13, color: context.rrT6));
+      case _PinState.success: return Text(tr('Unlocked', ref), style: const TextStyle(fontSize: 13, color: AppColors.score5));
       case _PinState.idle: return const SizedBox.shrink();
     }
   }
 }
-

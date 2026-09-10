@@ -5,6 +5,7 @@ import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../services/auth_service.dart';
+import '../data/translations.dart';
 
 // ── ActivationScreen ────────────────────────────────────────────────────────
 class ActivationScreen extends ConsumerStatefulWidget {
@@ -64,8 +65,8 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
       setState(() {
         _loading = false;
         _error = (e.toString().contains('400') || e.toString().contains('401')) 
-            ? (_isLoginMode ? 'Invalid credentials.' : 'Invalid or already used code.') 
-            : (_isLoginMode ? 'Login failed. Check network.' : 'Activation failed. Check network.');
+            ? (_isLoginMode ? tr('Invalid credentials.', ref) : tr('Invalid or already used code.', ref)) 
+            : (_isLoginMode ? tr('Login failed. Check network.', ref) : tr('Activation failed. Check network.', ref));
       });
     }
   }
@@ -95,14 +96,14 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                 ),
               ),
               Text(
-                _isLoginMode ? 'Login to your account' : 'Activate this device',
+                _isLoginMode ? tr('Login to your account', ref) : tr('Activate this device', ref),
                 style: TextStyle(fontSize: 27, fontWeight: FontWeight.w600, color: context.rrT1, height: 1.25),
               ),
               const SizedBox(height: 14),
               Text(
                 _isLoginMode 
-                    ? 'Enter your Service ID and 6-digit PIN.' 
-                    : 'Enter your code, full name, and create a 6-digit PIN.',
+                    ? tr('Enter your Service ID and 6-digit PIN.', ref) 
+                    : tr('Enter your code, full name, and create a 6-digit PIN.', ref),
                 style: TextStyle(fontSize: 14, color: context.rrT3, height: 1.65),
               ),
               if (_error != null) ...[
@@ -116,7 +117,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   child: Column(
                     children: [
                       if (_isLoginMode) ...[
-                        Text('Service ID', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Service ID', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
                         const SizedBox(height: 8),
                         TextField(
                           enabled: !_loading,
@@ -127,9 +128,9 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                           decoration: InputDecoration(hintText: 'e.g. SRV-1234', hintStyle: TextStyle(color: context.rrT7), border: InputBorder.none),
                         ),
                         const SizedBox(height: 16),
-                        Text('6-digit PIN', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('6-digit PIN', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
                       ] else ...[
-                        Text('Activation code', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Activation code', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
                         const SizedBox(height: 8),
                         TextField(
                           enabled: !_loading,
@@ -141,7 +142,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                           controller: TextEditingController(text: _formatted)..selection = TextSelection.collapsed(offset: _formatted.length),
                         ),
                         const SizedBox(height: 16),
-                        Text('Full Name', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Full Name', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
                         TextField(
                           enabled: !_loading,
                           textAlign: TextAlign.center,
@@ -150,7 +151,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                           decoration: InputDecoration(hintText: 'e.g. Constable Ravi', hintStyle: TextStyle(color: context.rrT7), border: InputBorder.none),
                         ),
                         const SizedBox(height: 16),
-                        Text('Create 6-digit PIN', style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Create 6-digit PIN', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
                       ],
                       TextField(
                         enabled: !_loading,
@@ -180,8 +181,8 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   child: Center(
                     child: Text(
                       _loading 
-                          ? (_isLoginMode ? 'Logging in…' : 'Activating…') 
-                          : (_isLoginMode ? 'Login' : 'Activate'),
+                          ? (_isLoginMode ? tr('Logging in…', ref) : tr('Activating…', ref)) 
+                          : (_isLoginMode ? tr('Login', ref) : tr('Activate', ref)),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _active ? const Color(0xFF0C1220) : AppColors.indigo.withValues(alpha: 0.45)),
                     ),
                   ),
@@ -201,9 +202,9 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       _isLoginMode 
-                          ? 'New device? Activate with a code' 
-                          : 'Already have credentials? Login instead',
-                      style: TextStyle(fontSize: 14, color: AppColors.indigo, fontWeight: FontWeight.w500),
+                          ? tr('New device? Activate with a code', ref) 
+                          : tr('Already have credentials? Login instead', ref),
+                      style: const TextStyle(fontSize: 14, color: AppColors.indigo, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),

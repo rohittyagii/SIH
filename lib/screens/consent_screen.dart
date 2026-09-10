@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
+import '../data/translations.dart';
 
 // ── ConsentScreen ────────────────────────────────────────────────────────────
 class ConsentScreen extends ConsumerStatefulWidget {
@@ -59,7 +60,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                 ),
               ),
               // Heading
-              Text('READINESS',
+              Text(tr('READINESS', ref),
                   style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
@@ -68,17 +69,17 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
               const SizedBox(height: 10),
               RichText(
                   text: TextSpan(
-                text: 'Your check-ins,\n',
+                text: tr('Your check-ins,\n', ref),
                 style: TextStyle(
                     fontSize: 27,
                     fontWeight: FontWeight.w600,
                     color: context.rrT1,
                     height: 1.25),
-                children: const [TextSpan(text: 'your call')],
+                children: [TextSpan(text: tr('your call', ref))],
               )),
               const SizedBox(height: 14),
               Text(
-                  'This is a personal readiness tool — not an assessment, and not a record that goes anywhere else. You decide what you log, and you stay in control of it.',
+                  tr('This is a personal readiness tool — not an assessment, and not a record that goes anywhere else. You decide what you log, and you stay in control of it.', ref),
                   style: TextStyle(
                       fontSize: 14, color: context.rrT3, height: 1.65)),
               const SizedBox(height: 28),
@@ -110,14 +111,14 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(a.title,
+                                  Text(tr(a.title, ref),
                                       style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           color: context.rrT2,
                                           height: 1.2)),
                                   const SizedBox(height: 4),
-                                  Text(a.body,
+                                  Text(tr(a.body, ref),
                                       style: TextStyle(
                                           fontSize: 13,
                                           color: context.rrT3,
@@ -145,7 +146,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('A few more details',
+                      Text(tr('A few more details', ref),
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -167,7 +168,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                                       color: context.rrT6),
                                 ),
                                 Expanded(
-                                    child: Text(item,
+                                    child: Text(tr(item, ref),
                                         style: TextStyle(
                                             fontSize: 13,
                                             color: context.rrT3,
@@ -196,9 +197,9 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                           offset: const Offset(0, 4))
                     ],
                   ),
-                  child: const Center(
-                    child: Text('I agree, continue',
-                        style: TextStyle(
+                  child: Center(
+                    child: Text(tr('I agree, continue', ref),
+                        style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF0C1220))),
@@ -210,7 +211,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                 child: GestureDetector(
                   onTap: () => setState(() => _expanded = !_expanded),
                   child: Text(
-                    _expanded ? 'Show less' : 'Learn more about data handling',
+                    _expanded ? tr('Show less', ref) : tr('Learn more about data handling', ref),
                     style: TextStyle(fontSize: 14, color: context.rrT3),
                   ),
                 ),
