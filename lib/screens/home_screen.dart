@@ -79,9 +79,12 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Text(_todayLabel,
-                                style: TextStyle(
-                                    fontSize: 13, color: context.rrT5)),
+                            Flexible(
+                              child: Text(_todayLabel,
+                                  style: TextStyle(
+                                      fontSize: 13, color: context.rrT5),
+                                  overflow: TextOverflow.ellipsis),
+                            ),
                             if (streak > 0) ...[
                               const SizedBox(width: 10),
                               Container(

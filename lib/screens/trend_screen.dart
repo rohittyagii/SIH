@@ -92,18 +92,22 @@ class _TrendChart extends StatelessWidget {
               children: [
                 Text('30-DAY OVERVIEW',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: context.rrT6, letterSpacing: 0.10)),
+                const SizedBox(width: 8),
                 // Legend
-                Row(
-                  children: dims.map((d) => Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Row(
+                Expanded(
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 10,
+                    runSpacing: 4,
+                    children: dims.map((d) => Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(width: 14, height: 2, decoration: BoxDecoration(borderRadius: BorderRadius.circular(1), color: dimColors[d.key])),
                         const SizedBox(width: 4),
                         Text(d.label.split(' ')[0], style: TextStyle(fontSize: 10, color: context.rrT4)),
                       ],
-                    ),
-                  )).toList(),
+                    )).toList(),
+                  ),
                 ),
               ],
             ),
@@ -326,13 +330,18 @@ class TrendScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    streak > 0
-                        ? 'Last 7 entries · $streak-day streak'
-                        : 'Last 7 entries',
-                    style: TextStyle(fontSize: 13, color: context.rrT4),
+                  Expanded(
+                    child: Text(
+                      streak > 0
+                          ? 'Last 7 entries · $streak-day streak'
+                          : 'Last 7 entries',
+                      style: TextStyle(fontSize: 13, color: context.rrT4),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       IconLock(size: 10, color: context.rrT7),
                       const SizedBox(width: 5),
