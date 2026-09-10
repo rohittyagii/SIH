@@ -63,7 +63,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = e.toString().contains('400') 
+        _error = (e.toString().contains('400') || e.toString().contains('401')) 
             ? (_isLoginMode ? 'Invalid credentials.' : 'Invalid or already used code.') 
             : (_isLoginMode ? 'Login failed. Check network.' : 'Activation failed. Check network.');
       });

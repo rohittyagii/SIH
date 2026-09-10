@@ -3,83 +3,84 @@ import 'package:google_fonts/google_fonts.dart';
 
 // ── Dark palette (rosewood dark — maps to :root CSS vars) ─────────────────
 abstract final class AppColorsDark {
-  static const bg   = Color(0xFF1A0D12); // deep rosewood black
-  static const bgd  = Color(0xFF130A0E); // even deeper for layering
-  static const bgn  = Color(0xFF200F17); // elevated surfaces
-  static const bgc  = Color(0xFF2A1520); // card background
+  static const bg   = Color(0xFF140A0E); // slightly deeper rosewood black for higher contrast
+  static const bgd  = Color(0xFF0F070A); // even deeper
+  static const bgn  = Color(0xFF1C0D14); // elevated surfaces
+  static const bgc  = Color(0xFF24111B); // card background
 
   // Card chrome
-  static const cbt  = Color(0x1AFFFFFF); // rgba(255,255,255,0.10)
-  static const cb   = Color(0x0BFFFFFF); // rgba(255,255,255,0.045)
-  static const csh  = Color(0x6B000000); // rgba(0,0,0,0.42)
+  static const cbt  = Color(0x26FFFFFF); // rgba(255,255,255,0.15)
+  static const cb   = Color(0x12FFFFFF); // rgba(255,255,255,0.07)
+  static const csh  = Color(0x8A000000); // rgba(0,0,0,0.54) - deeper shadow
 
-  // Text t1 → t7 (warm off-white fading to muted rose-grey)
-  static const t1   = Color(0xFFF5EDF0);
-  static const t2   = Color(0xFFDFC8CF);
-  static const t2b  = Color(0xFFA87A8A);
-  static const t3   = Color(0xFF8C5F6E);
-  static const t4   = Color(0xFF6E4A57);
-  static const t5   = Color(0xFF5A3D49);
-  static const t6   = Color(0xFF4E3340);
-  static const t7   = Color(0xFF3A2430);
+  // Text t1 → t7 (shifted lighter for much higher contrast)
+  static const t1   = Color(0xFFFFF5F7);
+  static const t2   = Color(0xFFEEE0E5);
+  static const t2b  = Color(0xFFD1ABB8);
+  static const t3   = Color(0xFFB88B9D);
+  static const t4   = Color(0xFF9F7183);
+  static const t5   = Color(0xFF895C6E);
+  static const t6   = Color(0xFF734958);
+  static const t7   = Color(0xFF5F3947);
 
   // Surfaces
-  static const ov   = Color(0x06FFFFFF); // rgba(255,255,255,0.025)
-  static const pl   = Color(0x09FFFFFF); // rgba(255,255,255,0.035)
-  static const inSurface = Color(0x0AFFFFFF); // rgba(255,255,255,0.04)
+  static const ov   = Color(0x0AFFFFFF); 
+  static const pl   = Color(0x0EFFFFFF); 
+  static const inSurface = Color(0x12FFFFFF); 
 
-  // Borders / dividers
-  static const dv   = Color(0x0DFFFFFF);
-  static const dv2  = Color(0x0FFFFFFF);
-  static const dv3  = Color(0x12FFFFFF);
-  static const ib   = Color(0x14FFFFFF);
-  static const plb  = Color(0x16FFFFFF);
-  static const b1   = Color(0x17FFFFFF);
-  static const b2   = Color(0x1AFFFFFF);
-  static const b3   = Color(0x1CFFFFFF);
-  static const b4   = Color(0x1FFFFFFF);
-  static const b5   = Color(0x21FFFFFF);
-  static const b6   = Color(0x24FFFFFF);
-  static const b7   = Color(0x29FFFFFF);
+  // Borders / dividers - increased opacity for more definition
+  static const dv   = Color(0x1AFFFFFF);
+  static const dv2  = Color(0x1EFFFFFF);
+  static const dv3  = Color(0x24FFFFFF);
+  static const ib   = Color(0x29FFFFFF);
+  static const plb  = Color(0x2EFFFFFF);
+  static const b1   = Color(0x33FFFFFF);
+  static const b2   = Color(0x38FFFFFF);
+  static const b3   = Color(0x3DFFFFFF);
+  static const b4   = Color(0x42FFFFFF);
+  static const b5   = Color(0x47FFFFFF);
+  static const b6   = Color(0x4DFFFFFF);
+  static const b7   = Color(0x54FFFFFF);
 }
 
 // ── Light palette (rosewood light) ─────────────────────────────────────────
 abstract final class AppColorsLight {
-  static const bg   = Color(0xFFFCFDFF); // near-white with cool tint (provided)
-  static const bgd  = Color(0xFFF2E6EA); // soft rose depth layer
+  static const bg   = Color(0xFFFFFFFF); // pure white for max contrast
+  static const bgd  = Color(0xFFF7ECF0); // slightly lighter rose depth
   static const bgn  = Color(0xFFFFFFFF); // pure white cards
   static const bgc  = Color(0xFFFFFFFF); // card fills
 
-  static const cbt  = Color(0x17000000);
-  static const cb   = Color(0x0D000000);
-  static const csh  = Color(0x12000000);
+  static const cbt  = Color(0x26000000);
+  static const cb   = Color(0x1A000000);
+  static const csh  = Color(0x1F000000);
 
-  // Text t1 → t7 (near-black fading to muted rose-grey)
-  static const t1   = Color(0xFF1A0D12);
-  static const t2   = Color(0xFF2E1A22);
-  static const t2b  = Color(0xFF5A3D4A);
-  static const t3   = Color(0xFF6E4A57);
-  static const t4   = Color(0xFF836070);
-  static const t5   = Color(0xFF957080);
-  static const t6   = Color(0xFFA88090);
-  static const t7   = Color(0xFFBE96A4);
+  // Text t1 → t7 (shifted darker for much higher contrast)
+  static const t1   = Color(0xFF12080C);
+  static const t2   = Color(0xFF24131A);
+  static const t2b  = Color(0xFF422B36);
+  static const t3   = Color(0xFF543845);
+  static const t4   = Color(0xFF684857);
+  static const t5   = Color(0xFF7C5868);
+  static const t6   = Color(0xFF8C6677);
+  static const t7   = Color(0xFF9E7587);
 
-  static const ov   = Color(0x08000000);
-  static const pl   = Color(0x0A000000);
-  static const inSurface = Color(0x0A000000);
+  static const ov   = Color(0x0C000000);
+  static const pl   = Color(0x0F000000);
+  static const inSurface = Color(0x0F000000);
 
-  static const dv   = Color(0x0F000000);
-  static const dv2  = Color(0x12000000);
-  static const dv3  = Color(0x12000000);
-  static const ib   = Color(0x17000000);
-  static const plb  = Color(0x17000000);
-  static const b1   = Color(0x14000000);
-  static const b2   = Color(0x17000000);
-  static const b3   = Color(0x17000000);
-  static const b4   = Color(0x1A000000);
-  static const b5   = Color(0x1A000000);
-  static const b6   = Color(0x1A000000);
-  static const b7   = Color(0x1F000000);
+  // Borders / dividers - increased opacity for more definition
+  static const dv   = Color(0x1A000000);
+  static const dv2  = Color(0x1E000000);
+  static const dv3  = Color(0x24000000);
+  static const ib   = Color(0x29000000);
+  static const plb  = Color(0x2E000000);
+  static const b1   = Color(0x33000000);
+  static const b2   = Color(0x38000000);
+  static const b3   = Color(0x3D000000);
+  static const b4   = Color(0x42000000);
+  static const b5   = Color(0x47000000);
+  static const b6   = Color(0x4D000000);
+  static const b7   = Color(0x54000000);
 }
 
 // ── Brand / semantic colors (same in both themes) ───────────────────────────
