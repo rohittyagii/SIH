@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:dio/dio.dart';
 import 'api_client.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -10,7 +9,7 @@ final authServiceProvider = Provider<AuthService>((ref) {
 class AuthService {
   final ApiClient _api;
   final _storage = const FlutterSecureStorage();
-  
+
   AuthService(this._api);
 
   Future<Map<String, dynamic>> activateDevice(
@@ -23,7 +22,8 @@ class AuthService {
       });
       final token = res.data['access_token'];
       await _api.saveToken(token);
-      await _storage.write(key: 'local_pin', value: pin); // Cache PIN for offline
+      await _storage.write(
+          key: 'local_pin', value: pin); // Cache PIN for offline
       return res.data['user'];
     } catch (e) {
       rethrow;
@@ -47,7 +47,8 @@ class AuthService {
       });
       final token = res.data['access_token'];
       await _api.saveToken(token);
-      await _storage.write(key: 'local_pin', value: pin); // Cache PIN for future offline logins
+      await _storage.write(
+          key: 'local_pin', value: pin); // Cache PIN for future offline logins
       return res.data['user'];
     } catch (e) {
       rethrow;
@@ -86,7 +87,8 @@ class AuthService {
         'current_pin': currentPin,
         'new_pin': newPin,
       });
-      await _storage.write(key: 'local_pin', value: newPin); // Update cached PIN
+      await _storage.write(
+          key: 'local_pin', value: newPin); // Update cached PIN
     } catch (e) {
       // If API fails, we could theoretically do an offline pin change, but better to require online for changes.
       rethrow;
@@ -99,4 +101,3 @@ class AuthService {
     } catch (_) {}
   }
 }
-
