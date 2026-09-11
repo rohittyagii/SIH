@@ -15,6 +15,7 @@ export default function SettingsPage() {
     // Load language preference from localStorage if available
     const savedLanguage = localStorage.getItem("welfare_language");
     if (savedLanguage) {
+      // eslint-disable-next-line
       setLanguage(savedLanguage);
     }
   }, []);
@@ -90,7 +91,7 @@ export default function SettingsPage() {
               <label className="text-sm font-medium leading-none">
                 Interface Language
               </label>
-              <Select value={language} onValueChange={setLanguage}>
+              <Select value={language} onValueChange={(val) => val && setLanguage(val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Language" />
                 </SelectTrigger>
