@@ -137,6 +137,15 @@ class _MainAppState extends ConsumerState<_MainApp> {
               ))
           .toList();
       ref.read(historyProvider.notifier).state = history;
+
+      // Enforce once-per-day locally: if any loaded entry matches today, mark done.
+      if (!ref.read(todayDoneProvider)) {
+        final todayStr = _todayIso();
+        final matchesToday = history.any((e) => _entryMatchesDate(e.date, todayStr));
+        if (matchesToday) {
+          ref.read(todayDoneProvider.notifier).state = true;
+        }
+      }
     } catch (e) {
       // Ignored for now, keep seed history if offline
     }
@@ -275,5 +284,37 @@ class _MainAppState extends ConsumerState<_MainApp> {
           },
         );
     }
+  }
+}
+
+// ── Helpers for once-per-day local enforcement ───────────────────────────────
+
+/// Returns today's date as an ISO string, e.g. "2026-09-11".
+String _todayIso() {
+  final n = DateTime.now();
+  return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
+}
+
+/// Returns true if [entryDate] (ISO "2026-09-11" OR friendly "Thu, Sep 11")
+/// refers to the same calendar day as [todayIso].
+bool _entryMatchesDate(String entryDate, String todayIso) {
+  // ISO format
+  if (entryDate == todayIso) return true;
+  // Friendly format: "Thu, Sep 11"
+  const months = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+    'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+  };
+  try {
+    final stripped = entryDate.replaceAll(',', '').trim();
+    final parts = stripped.split(' ');
+    final dateParts = parts.length == 3 ? parts.sublist(1) : parts;
+    final month = months[dateParts[0]];
+    final day = int.parse(dateParts[1]);
+    if (month == null) return false;
+    final now = DateTime.now();
+    return now.month == month && now.day == day;
+  } catch (_) {
+    return false;
   }
 }

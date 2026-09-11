@@ -138,12 +138,86 @@ class _BiometricsCard extends ConsumerWidget {
 class _TrendChart extends ConsumerWidget {
   const _TrendChart();
 
+  /// Converts an [Entry.date] string to an x-axis value 1–30 where
+  /// 30 = today and 1 = 30 days ago. Returns null if out of window or unparseable.
+  static double? _dayOffset(String entryDate) {
+    final today = DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    const months = {
+      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+      'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+    };
+    DateTime? date;
+
+    // ISO: "2026-09-11"
+    try {
+      final parts = entryDate.split('-');
+      if (parts.length == 3) {
+        date = DateTime(
+            int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+      }
+    } catch (_) {}
+
+    // Friendly: "Thu, Sep 11"
+    if (date == null) {
+      try {
+        final stripped = entryDate.replaceAll(',', '').trim();
+        final parts = stripped.split(' ');
+        final dateParts = parts.length == 3 ? parts.sublist(1) : parts;
+        final month = months[dateParts[0]];
+        final day = int.parse(dateParts[1]);
+        if (month != null) {
+          date = DateTime(today.year, month, day);
+          // Handle year boundary (e.g. Dec entry in a Jan context)
+          if (date.isAfter(today)) {
+            date = DateTime(today.year - 1, month, day);
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (date == null) return null;
+    final daysAgo = today.difference(date).inDays;
+    if (daysAgo < 0 || daysAgo > 29) return null;
+    // x = 30 means today, x = 1 means 29 days ago
+    return (30 - daysAgo).toDouble();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = buildThirtyDayData();
+    final history = ref.watch(historyProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tickColor = isDark ? const Color(0xFF384C5E) : const Color(0xFF8898A8);
     final gridColor = isDark ? const Color(0x0DFFFFFF) : const Color(0x0F000000);
+
+    // Build x-label map: show labels at roughly weekly intervals
+    final today = DateTime.now();
+    final Map<int, String> xLabels = {};
+    const labelOffsets = [1, 8, 15, 22, 30];
+    const shortMonths = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    for (final offset in labelOffsets) {
+      final d = today.subtract(Duration(days: 30 - offset));
+      xLabels[offset] = '${shortMonths[d.month - 1]} ${d.day}';
+    }
+
+    // Build spots per dimension from real history only
+    List<FlSpot> spotsFor(DimKey key) {
+      final spots = <FlSpot>[];
+      for (final entry in history) {
+        final x = _dayOffset(entry.date);
+        if (x != null) {
+          spots.add(FlSpot(x, entry.score(key).toDouble()));
+        }
+      }
+      // Sort ascending by x so the line connects correctly
+      spots.sort((a, b) => a.x.compareTo(b.x));
+      return spots;
+    }
+
+    final hasData = history.any((e) => _dayOffset(e.date) != null);
 
     return RrCard(
       padding: const EdgeInsets.fromLTRB(6, 16, 10, 10),
@@ -178,75 +252,95 @@ class _TrendChart extends ConsumerWidget {
               ],
             ),
           ),
-          // Chart
-          SizedBox(
-            height: 172,
-            child: LineChart(
-              LineChartData(
-                minX: 1, maxX: 30, minY: 1, maxY: 5,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 1,
-                  getDrawingHorizontalLine: (_) => FlLine(color: gridColor, strokeWidth: 1),
+          // Chart or empty state
+          if (!hasData)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  tr('No check-in data in the last 30 days', ref),
+                  style: TextStyle(fontSize: 12, color: context.rrT5),
+                  textAlign: TextAlign.center,
                 ),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 1,
-                      reservedSize: 24,
-                      getTitlesWidget: (v, _) => Text(v.toInt().toString(),
-                        style: TextStyle(fontSize: 10, color: tickColor)),
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 1,
-                      getTitlesWidget: (v, _) {
-                        final label = chartXLabels[v.toInt()];
-                        if (label == null) return const SizedBox.shrink();
-                        return Text(label, style: TextStyle(fontSize: 10, color: tickColor));
-                      },
-                    ),
-                  ),
-                  topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (spots) => spots.map((s) {
-                      final dim = dims[s.barIndex];
-                      final col = dimColors[dim.key]!;
-                      return LineTooltipItem(
-                        '${tr(dim.label, ref).split(' ')[0]}: ${s.y.toInt()}',
-                        TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.w600),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                lineBarsData: dims.map((d) => LineChartBarData(
-                  spots: data.map((p) => FlSpot(p.day.toDouble(), p.forKey(d.key))).toList(),
-                  isCurved: true,
-                  color: dimColors[d.key],
-                  barWidth: 1.75,
-                  dotData: FlDotData(
+              ),
+            )
+          else
+            SizedBox(
+              height: 172,
+              child: LineChart(
+                LineChartData(
+                  minX: 1, maxX: 30, minY: 1, maxY: 5,
+                  gridData: FlGridData(
                     show: true,
-                    getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
-                      radius: 0, color: Colors.transparent, strokeWidth: 0, strokeColor: Colors.transparent,
+                    drawVerticalLine: false,
+                    horizontalInterval: 1,
+                    getDrawingHorizontalLine: (_) => FlLine(color: gridColor, strokeWidth: 1),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 1,
+                        reservedSize: 24,
+                        getTitlesWidget: (v, _) => Text(v.toInt().toString(),
+                          style: TextStyle(fontSize: 10, color: tickColor)),
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 1,
+                        getTitlesWidget: (v, _) {
+                          final label = xLabels[v.toInt()];
+                          if (label == null) return const SizedBox.shrink();
+                          return Text(label, style: TextStyle(fontSize: 10, color: tickColor));
+                        },
+                      ),
+                    ),
+                    topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (spots) => spots.map((s) {
+                        final dim = dims[s.barIndex];
+                        final col = dimColors[dim.key]!;
+                        return LineTooltipItem(
+                          '${tr(dim.label, ref).split(' ')[0]}: ${s.y.toInt()}',
+                          TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.w600),
+                        );
+                      }).toList(),
                     ),
                   ),
-                )).toList(),
+                  lineBarsData: dims.map((d) {
+                    final spots = spotsFor(d.key);
+                    return LineChartBarData(
+                      spots: spots,
+                      isCurved: spots.length > 2,
+                      preventCurveOverShooting: true,
+                      color: dimColors[d.key],
+                      barWidth: 1.75,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
+                          radius: spots.length == 1 ? 3.0 : 2.0,
+                          color: dimColors[d.key]!,
+                          strokeWidth: 0,
+                          strokeColor: Colors.transparent,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 }
+
 
 // ── Device calendar card ─────────────────────────────────────────────────────
 class _DeviceCalendarCard extends ConsumerStatefulWidget {
