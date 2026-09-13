@@ -243,49 +243,64 @@ export default function PersonnelDetailPage() {
           {/* Mental Resilience Tile */}
           <Card className="glass-card hover:border-primary/40 transition-colors">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xl">🧠</span>
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <svg className="w-4 h-4 text-muted-foreground mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+                  </svg>
+                  <p className="text-[11px] text-muted-foreground">Resilience Score</p>
+                </div>
                 <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                   currentMentalScore >= 70 ? "bg-emerald-500/15 text-emerald-400" : currentMentalScore >= 50 ? "bg-amber-500/15 text-amber-400" : "bg-rose-500/15 text-rose-400"
                 }`}>
                   {currentMentalScore >= 70 ? "Resilient" : currentMentalScore >= 50 ? "Moderate" : "Strain"}
                 </span>
               </div>
-              <p className="text-[12px] text-muted-foreground mt-0.5">Resilience Score</p>
-              <p className="text-xl font-extrabold mt-1">{currentMentalScore} <span className="text-[11px] font-normal text-muted-foreground">/ 100</span></p>
-              <p className="text-[11px] text-muted-foreground mt-1">Composite wellbeing</p>
+              <p className="text-2xl font-extrabold leading-tight">{currentMentalScore} <span className="text-[11px] font-normal text-muted-foreground">/ 100</span></p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Composite wellbeing</p>
             </CardContent>
           </Card>
 
           {/* Sleep Recovery Tile */}
           <Card className="glass-card hover:border-primary/40 transition-colors">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xl">😴</span>
-                <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <svg className="w-4 h-4 text-muted-foreground mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                  </svg>
+                  <p className="text-[11px] text-muted-foreground">Sleep Recovery</p>
+                </div>
+                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                  Number(avgSleepScore) >= 6 ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"
+                }`}>
                   {Number(avgSleepScore) >= 6 ? "Good" : "Deficit"}
                 </span>
               </div>
-              <p className="text-[12px] text-muted-foreground mt-0.5">Sleep Recovery</p>
-              <p className="text-xl font-extrabold mt-1">{avgSleepScore} <span className="text-[11px] font-normal text-muted-foreground">/ 10</span></p>
-              <p className="text-[11px] text-muted-foreground mt-1">Average score</p>
+              <p className="text-2xl font-extrabold leading-tight">{avgSleepScore} <span className="text-[11px] font-normal text-muted-foreground">/ 10</span></p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Average score</p>
             </CardContent>
           </Card>
 
           {/* Wearable HRV Deviation Tile */}
           <Card className="glass-card hover:border-primary/40 transition-colors">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xl">⌚</span>
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <svg className="w-4 h-4 text-muted-foreground mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                  </svg>
+                  <p className="text-[11px] text-muted-foreground">Wearable HRV</p>
+                </div>
                 <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                   latestHrv > 20 ? "bg-rose-500/15 text-rose-400" : "bg-sky-500/15 text-sky-400"
                 }`}>
                   {latestHrv > 20 ? "Elevated" : "Sync OK"}
                 </span>
               </div>
-              <p className="text-[12px] text-muted-foreground mt-0.5">Wearable HRV</p>
-              <p className="text-xl font-extrabold mt-1">+{latestHrv.toFixed(1)}%</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Baseline deviation</p>
+              <p className="text-2xl font-extrabold leading-tight">+{latestHrv.toFixed(1)}%</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Baseline deviation</p>
             </CardContent>
           </Card>
 
@@ -294,17 +309,22 @@ export default function PersonnelDetailPage() {
             (hr_metrics?.avg_weekly_duty_hours || 0) > 56 ? "border-risk-intervention/40" : ""
           }`}>
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xl">⏱️</span>
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <svg className="w-4 h-4 text-muted-foreground mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <p className="text-[11px] text-muted-foreground">Weekly Duty</p>
+                </div>
                 <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                   (hr_metrics?.avg_weekly_duty_hours || 0) > 56 ? "bg-rose-500/15 text-rose-400" : "bg-primary/15 text-primary"
                 }`}>
                   {(hr_metrics?.avg_weekly_duty_hours || 0) > 56 ? "Overtime" : "Normal"}
                 </span>
               </div>
-              <p className="text-[12px] text-muted-foreground mt-0.5">Weekly Duty</p>
-              <p className="text-xl font-extrabold mt-1">{hr_metrics?.avg_weekly_duty_hours || 48}h</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Weekly hours avg</p>
+              <p className="text-2xl font-extrabold leading-tight">{hr_metrics?.avg_weekly_duty_hours || 48}h</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Weekly hours avg</p>
             </CardContent>
           </Card>
 
@@ -313,32 +333,44 @@ export default function PersonnelDetailPage() {
             (hr_metrics?.days_since_last_leave || 0) > 90 ? "border-risk-intervention/40" : ""
           }`}>
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xl">🏖️</span>
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <svg className="w-4 h-4 text-muted-foreground mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <p className="text-[11px] text-muted-foreground">Leave Counter</p>
+                </div>
                 <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                   (hr_metrics?.days_since_last_leave || 0) > 90 ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400"
                 }`}>
                   {(hr_metrics?.days_since_last_leave || 0) > 90 ? "Critical" : "Standard"}
                 </span>
               </div>
-              <p className="text-[12px] text-muted-foreground mt-0.5">Leave Counter</p>
-              <p className="text-xl font-extrabold mt-1">{hr_metrics?.days_since_last_leave || 0}d</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Days without leave</p>
+              <p className="text-2xl font-extrabold leading-tight">{hr_metrics?.days_since_last_leave || 0}d</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Days without leave</p>
             </CardContent>
           </Card>
 
           {/* Deployment History Tile */}
           <Card className="glass-card hover:border-primary/40 transition-colors">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xl">🛡️</span>
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <svg className="w-4 h-4 text-muted-foreground mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <p className="text-[11px] text-muted-foreground">Deployment</p>
+                </div>
                 <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
                   Active
                 </span>
               </div>
-              <p className="text-[12px] text-muted-foreground mt-0.5">Deployment</p>
-              <p className="text-xl font-extrabold mt-1">{hr_metrics?.deployment_history_months || 0} mo</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Posting duration</p>
+              <p className="text-2xl font-extrabold leading-tight">{hr_metrics?.deployment_history_months || 0} mo</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Posting duration</p>
             </CardContent>
           </Card>
         </div>
