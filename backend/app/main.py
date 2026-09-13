@@ -1,12 +1,29 @@
 from __future__ import annotations
 """FastAPI application entry point."""
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.routers import auth, health, wellness, personnel, hr_metrics, assessments, users, support
+from app.ml.predictor import predictor
+from app.ml.feature_engineering import FEATURE_NAMES
 
 settings = get_settings()
+_ml_logger = logging.getLogger("app.ml")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load ML models at startup; clean up on shutdown."""
+    if predictor.load_models():
+        _ml_logger.info("ML models loaded successfully")
+    else:
+        _ml_logger.warning("ML models not available — using rule-based fallback")
+    yield
+
 
 app = FastAPI(
     title="SainikSaathi API",
@@ -17,6 +34,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
@@ -42,6 +60,21 @@ app.include_router(personnel.router)
 app.include_router(hr_metrics.router)
 app.include_router(assessments.router)
 app.include_router(health.router)
+
+
+@app.get('/api/v1/ml/status')
+async def ml_status():
+    import json, os
+    metadata = {}
+    meta_path = os.path.join(os.path.dirname(__file__), 'ml', 'models', 'model_metadata.json')
+    if os.path.exists(meta_path):
+        with open(meta_path) as f:
+            metadata = json.load(f)
+    return {
+        'models_loaded': predictor.is_loaded,
+        'feature_names': FEATURE_NAMES,
+        'metadata': metadata,
+    }
 
 
 import traceback

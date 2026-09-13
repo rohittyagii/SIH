@@ -1,5 +1,6 @@
 from __future__ import annotations
 """Assessments router — triage, trends, AI run, and status update."""
+import logging
 import uuid
 import random
 from datetime import datetime, timedelta, timezone, date
@@ -16,6 +17,11 @@ from app.schemas.assessment import (
     AssessmentResponse, TriageEntry, TrendPoint,
     ActionUpdate, RunAssessmentResponse,
 )
+from app.ml.predictor import predictor
+from app.ml.feature_engineering import extract_features
+from app.ml.narrative import generate_narrative
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
@@ -239,9 +245,27 @@ async def run_assessment(personnel_id: str, current_user: OfficerOrAbove, db: Db
         if checkins else 3.0
     )
 
-    risk = _classify_risk(avg_score, hrv, leave, duty)
-    resilience = _compute_resilience(mood_raw, sleep_raw, fatigue_raw)
-    factors, intervention, narrative = _generate_narrative(risk, hrv, duty, leave, months)
+    # Try ML-based assessment
+    ml_result = None
+    try:
+        checkins_dicts = [{'overall_score': c.overall_score, 'sleep_score': c.sleep_score, 'physical_score': c.physical_score, 'focus_score': c.focus_score} for c in checkins]
+        hr_dict = {'avg_weekly_duty_hours': duty, 'days_since_last_leave': leave, 'deployment_history_months': months, 'hrv_baseline_deviation': hrv} if hr else None
+        ml_result = predictor.predict(checkins_dicts, hr_dict)
+    except Exception:
+        pass
+
+    if ml_result:
+        risk = RiskLevel(ml_result['risk_level'])
+        resilience = ml_result['resilience_score']
+        narr = generate_narrative(ml_result['risk_level'], ml_result['features_dict'], predictor.predict_risk_probabilities(extract_features(checkins_dicts, hr_dict)))
+        factors = narr['contributing_factors']
+        intervention = narr['recommended_intervention']
+        narrative = narr['ai_narrative']
+    else:
+        # Fallback to rules
+        risk = _classify_risk(avg_score, hrv, leave, duty)
+        resilience = _compute_resilience(mood_raw, sleep_raw, fatigue_raw)
+        factors, intervention, narrative = _generate_narrative(risk, hrv, duty, leave, months)
 
     assessment = AIAssessment(
         id=uuid.uuid4(),
@@ -314,9 +338,27 @@ async def run_unit_assessment(
         checkins = checkins_res.scalars().all()
         avg_score = sum(c.average_score for c in checkins) / len(checkins) if checkins else 3.0
 
-        risk = _classify_risk(avg_score, hrv, leave, duty)
-        resilience = _compute_resilience(mood_raw, sleep_raw, fatigue_raw)
-        factors, intervention, narrative = _generate_narrative(risk, hrv, duty, leave, months)
+        # Try ML-based assessment
+        ml_result = None
+        try:
+            checkins_dicts = [{'overall_score': c.overall_score, 'sleep_score': c.sleep_score, 'physical_score': c.physical_score, 'focus_score': c.focus_score} for c in checkins]
+            hr_dict = {'avg_weekly_duty_hours': duty, 'days_since_last_leave': leave, 'deployment_history_months': months, 'hrv_baseline_deviation': hrv} if hr else None
+            ml_result = predictor.predict(checkins_dicts, hr_dict)
+        except Exception:
+            pass
+
+        if ml_result:
+            risk = RiskLevel(ml_result['risk_level'])
+            resilience = ml_result['resilience_score']
+            narr = generate_narrative(ml_result['risk_level'], ml_result['features_dict'], predictor.predict_risk_probabilities(extract_features(checkins_dicts, hr_dict)))
+            factors = narr['contributing_factors']
+            intervention = narr['recommended_intervention']
+            narrative = narr['ai_narrative']
+        else:
+            # Fallback to rules
+            risk = _classify_risk(avg_score, hrv, leave, duty)
+            resilience = _compute_resilience(mood_raw, sleep_raw, fatigue_raw)
+            factors, intervention, narrative = _generate_narrative(risk, hrv, duty, leave, months)
 
         assessment = AIAssessment(
             id=uuid.uuid4(),

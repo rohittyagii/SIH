@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-13T11:31:18.252375",
+  "feature_names": [
+    "avg_overall",
+    "avg_sleep",
+    "avg_physical",
+    "avg_focus",
+    "score_trend",
+    "checkin_consistency",
+    "avg_weekly_duty_hours",
+    "days_since_last_leave",
+    "deployment_history_months",
+    "hrv_baseline_deviation"
+  ],
+  "classes": [
+    "Intervention_Recommended",
+    "Monitor",
+    "Routine"
+  ],
+  "metrics": {
+    "classification": {
+      "accuracy": 1.0,
+      "f1_macro": 1.0
+    },
+    "regression": {
+      "mae": 2.3620432582603548,
+      "r2": 0.9866249506283443
+    }
+  }
+}
