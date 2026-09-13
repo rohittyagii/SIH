@@ -93,19 +93,73 @@ def _to_assessment_response(a: AIAssessment) -> AssessmentResponse:
 
 # ── GET /assessments/triage ───────────────────────────────────────────────────
 
+@router.post("/cleanup-duplicates")
+async def cleanup_duplicate_assessments(_: OfficerOrAbove, db: DbSession):
+    """
+    Admin utility: delete all but the most recent assessment per user.
+    Call once to purge accumulated duplicates from the database.
+    """
+    from sqlalchemy import delete
+
+    # Find the ID of the latest assessment per user
+    latest_subq = (
+        select(func.max(AIAssessment.created_at).label("max_ts"), AIAssessment.user_id)
+        .group_by(AIAssessment.user_id)
+        .subquery()
+    )
+
+    # Select all assessment IDs that are NOT the latest for their user
+    to_keep = (
+        select(AIAssessment.id)
+        .join(
+            latest_subq,
+            and_(
+                AIAssessment.user_id == latest_subq.c.user_id,
+                AIAssessment.created_at == latest_subq.c.max_ts,
+            ),
+        )
+    ).scalar_subquery()
+
+    del_result = await db.execute(
+        delete(AIAssessment).where(AIAssessment.id.not_in(to_keep))
+    )
+    await db.flush()
+
+    deleted = del_result.rowcount
+    logger.info("cleanup_duplicate_assessments: deleted %d duplicate rows", deleted)
+    return {"deleted": deleted, "message": f"Removed {deleted} duplicate assessment rows. One assessment per soldier retained."}
+
+
 @router.get("/triage", response_model=list[TriageEntry])
 async def get_triage(_: OfficerOrAbove, db: DbSession):
     """
-    Priority-sorted triage queue.
+    Priority-sorted triage queue — ONE entry per soldier (their latest assessment).
     Order: Intervention_Recommended (1) → Monitor (2) → Routine (3)
     Only shows Pending and Acknowledged entries (not resolved).
     """
+    # Subquery: latest created_at per user among non-resolved assessments
+    latest_subq = (
+        select(
+            func.max(AIAssessment.created_at).label("max_ts"),
+            AIAssessment.user_id,
+        )
+        .where(AIAssessment.status != AssessmentStatus.ACTION_TAKEN)
+        .group_by(AIAssessment.user_id)
+        .subquery()
+    )
+
     result = await db.execute(
         select(AIAssessment, User, Unit)
         .join(User, AIAssessment.user_id == User.id)
         .join(Unit, AIAssessment.unit_id == Unit.id)
+        .join(
+            latest_subq,
+            and_(
+                AIAssessment.user_id == latest_subq.c.user_id,
+                AIAssessment.created_at == latest_subq.c.max_ts,
+            ),
+        )
         .where(AIAssessment.status != AssessmentStatus.ACTION_TAKEN)
-        .order_by(AIAssessment.created_at.desc())
     )
     rows = result.all()
 
