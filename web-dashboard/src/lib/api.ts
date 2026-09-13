@@ -72,6 +72,12 @@ export const api = {
     apiFetch<any[]>(`/assessments/run-unit${unit ? `?unit=${encodeURIComponent(unit)}` : ""}`, {
       method: "POST",
     }),
+  /** Run real ML assessments for every active soldier across all units at once. */
+  runAllAssessments: () =>
+    apiFetch<{ total: number; assessed: number; skipped: number; errors: number; results: any[] }>(
+      "/assessments/run-all",
+      { method: "POST" }
+    ),
   getTriage: () => apiFetch<any[]>("/assessments/triage"),
   getTrends: () => apiFetch<any[]>("/assessments/trends"),
   getAssessmentHistory: (personnelId: string) =>

@@ -14,6 +14,8 @@ from app.schemas.checkin import (
     CheckinResponse, TodayStatusResponse,
 )
 from app.utils.encryption import encrypt_text, decrypt_text
+from app.ml.predictor import predictor
+from app.ml.feature_engineering import extract_features
 
 router = APIRouter(prefix="/wellness", tags=["wellness"])
 
@@ -74,7 +76,18 @@ async def submit_checkin(body: CheckinCreate, current_user: CurrentUser, db: DbS
     hr_res = await db.execute(select(HRMetrics).where(HRMetrics.user_id == current_user.id))
     hr = hr_res.scalar_one_or_none()
 
-    risk = _compute_risk_simple({"average_score": avg}, hr)
+    # Try ML-based risk prediction
+    ml_risk = None
+    try:
+        checkins_for_ml = [{'overall_score': body.overall_score, 'sleep_score': body.sleep_score, 'physical_score': body.physical_score, 'focus_score': body.focus_score}]
+        hr_dict = {'avg_weekly_duty_hours': hr.avg_weekly_duty_hours, 'days_since_last_leave': hr.days_since_last_leave, 'deployment_history_months': hr.deployment_history_months, 'hrv_baseline_deviation': hr.hrv_baseline_deviation} if hr else None
+        result = predictor.predict(checkins_for_ml, hr_dict)
+        if result:
+            ml_risk = RiskLevel(result['risk_level'])
+    except Exception:
+        pass  # fallback to rules
+
+    risk = ml_risk if ml_risk else _compute_risk_simple({"average_score": avg}, hr)
 
     note_enc = encrypt_text(body.note, str(current_user.id)) if body.note else None
 
@@ -157,7 +170,18 @@ async def submit_batch(body: CheckinBatchCreate, current_user: CurrentUser, db: 
             continue  # already synced
 
         avg = round((item.overall_score + item.sleep_score + item.physical_score + item.focus_score) / 4, 2)
-        risk = _compute_risk_simple({"average_score": avg}, hr)
+        # Try ML-based risk prediction
+        ml_risk = None
+        try:
+            checkins_for_ml = [{'overall_score': item.overall_score, 'sleep_score': item.sleep_score, 'physical_score': item.physical_score, 'focus_score': item.focus_score}]
+            hr_dict = {'avg_weekly_duty_hours': hr.avg_weekly_duty_hours, 'days_since_last_leave': hr.days_since_last_leave, 'deployment_history_months': hr.deployment_history_months, 'hrv_baseline_deviation': hr.hrv_baseline_deviation} if hr else None
+            result = predictor.predict(checkins_for_ml, hr_dict)
+            if result:
+                ml_risk = RiskLevel(result['risk_level'])
+        except Exception:
+            pass  # fallback to rules
+
+        risk = ml_risk if ml_risk else _compute_risk_simple({"average_score": avg}, hr)
         note_enc = encrypt_text(item.note, str(current_user.id)) if item.note else None
 
         checkin = WellnessCheckin(

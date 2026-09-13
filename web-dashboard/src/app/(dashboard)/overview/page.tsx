@@ -36,6 +36,13 @@ export default function OverviewPage() {
   const [assessing, setAssessing] = useState(false);
   const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
 
+  const [assessResult, setAssessResult] = useState<{
+    assessed: number;
+    skipped: number;
+    errors: number;
+    used_ml: boolean;
+  } | null>(null);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -54,10 +61,39 @@ export default function OverviewPage() {
 
   const runBatchAssessment = async () => {
     setAssessing(true);
+    setAssessResult(null);
     try {
-      for (const s of summaries) {
-        await api.runUnitAssessment(s.unit_name);
+      // Try the new /run-all endpoint (available after backend redeploy).
+      // Falls back to per-unit calls if the endpoint doesn't exist yet (404).
+      let assessed = 0;
+      let skipped = 0;
+      let errors = 0;
+      let usedMl = false;
+
+      try {
+        const result = await api.runAllAssessments();
+        assessed = result.assessed;
+        skipped = result.skipped ?? 0;
+        errors = result.errors;
+        usedMl = result.results.some((r: any) => r.used_ml);
+      } catch (runAllErr: any) {
+        // Fallback: call per-unit for each unit that still has unassessed personnel
+        for (const s of summaries) {
+          if (s.unassessed_count === 0) {
+            skipped += s.total_personnel;
+            continue;
+          }
+          try {
+            const unitResults = await api.runUnitAssessment(s.unit_name);
+            assessed += unitResults.length;
+            skipped += s.total_personnel - unitResults.length;
+          } catch {
+            errors += s.total_personnel;
+          }
+        }
       }
+
+      setAssessResult({ assessed, skipped, errors, used_ml: usedMl });
       await loadData();
     } catch (err) {
       console.error("Assessment failed:", err);
@@ -133,6 +169,38 @@ export default function OverviewPage() {
           )}
         </button>
       </div>
+
+      {/* Stat Cards */}
+      {assessResult && (
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-[13px] animate-fade-in ${
+          assessResult.errors > 0
+            ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+            : assessResult.assessed === 0
+            ? "bg-sky-500/10 border-sky-500/30 text-sky-400"
+            : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+        }`}>
+          <span className="text-base">
+            {assessResult.errors > 0 ? "⚠️" : assessResult.assessed === 0 ? "ℹ️" : "✅"}
+          </span>
+          <span className="font-medium">
+            {assessResult.assessed === 0
+              ? `Already up to date — all ${assessResult.skipped} soldier${assessResult.skipped !== 1 ? "s" : ""} were assessed today. No new entries created.`
+              : <>
+                  AI Assessment complete — {assessResult.assessed} soldier{assessResult.assessed !== 1 ? "s" : ""} assessed
+                  {assessResult.used_ml ? " using trained ML model" : " using rule-based engine"}.
+                  {assessResult.skipped > 0 && ` ${assessResult.skipped} already up to date.`}
+                  {assessResult.errors > 0 && ` ${assessResult.errors} error${assessResult.errors !== 1 ? "s" : ""}.`}
+                </>
+            }
+          </span>
+          <button
+            onClick={() => setAssessResult(null)}
+            className="ml-auto text-current opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
