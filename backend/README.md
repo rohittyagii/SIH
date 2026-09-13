@@ -29,6 +29,24 @@ docker-compose up --build
 API is now live at: **http://localhost:8000**
 Swagger docs: **http://localhost:8000/docs**
 
+### 2.5. Train ML models (required — run once per environment)
+
+The trained model artifacts (`.joblib`) are gitignored and must be generated
+locally before the "Run AI Assessment" button will use the real ML pipeline.
+
+```bash
+cd backend
+.venv/bin/python -m app.ml.training.train_models
+```
+
+This reads `app/ml/training/training_data.csv` and saves three files into
+`app/ml/models/`: `risk_classifier.joblib`, `resilience_regressor.joblib`,
+and `feature_scaler.joblib`. The script takes ~30 seconds and only needs to
+run once (or again after updating the training data).
+
+Without these files the backend automatically falls back to a rule-based
+assessment engine that still reads real data but produces less nuanced results.
+
 ### 3. Run migrations
 
 ```bash

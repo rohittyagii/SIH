@@ -220,6 +220,26 @@ async def run_assessment(personnel_id: str, current_user: OfficerOrAbove, db: Db
     if not user:
         raise HTTPException(status_code=404, detail="Personnel not found")
 
+    # Return existing assessment if already run today (no duplicates)
+    today = datetime.now(timezone.utc).date()
+    existing_res = await db.execute(
+        select(AIAssessment)
+        .where(
+            and_(
+                AIAssessment.user_id == user.id,
+                func.date(AIAssessment.created_at) == today,
+            )
+        )
+        .order_by(AIAssessment.created_at.desc())
+        .limit(1)
+    )
+    existing = existing_res.scalar_one_or_none()
+    if existing:
+        return RunAssessmentResponse(
+            assessment=_to_assessment_response(existing),
+            message=f"Assessment already completed today: {existing.risk_level.value}",
+        )
+
     # Load HR metrics
     hr_res = await db.execute(select(HRMetrics).where(HRMetrics.user_id == user.id))
     hr = hr_res.scalar_one_or_none()
@@ -300,7 +320,9 @@ async def run_unit_assessment(
     db: DbSession,
     unit: str = Query(..., description="Unit name to assess"),
 ):
-    """Trigger AI assessments for all personnel in a unit."""
+    """Trigger AI assessments for all personnel in a unit.
+    Skips soldiers who already have an assessment created today (UTC).
+    """
     unit_res = await db.execute(select(Unit).where(Unit.name.ilike(f"%{unit}%")))
     unit_obj = unit_res.scalar_one_or_none()
     if not unit_obj:
@@ -315,9 +337,21 @@ async def run_unit_assessment(
     )
     personnel = personnel_res.scalars().all()
 
+    today = datetime.now(timezone.utc).date()
     results = []
     for user in personnel:
-        # Inline same logic as run_assessment for each user
+        # ── Skip if already assessed today ───────────────────────────────────
+        existing = await db.execute(
+            select(AIAssessment.id).where(
+                and_(
+                    AIAssessment.user_id == user.id,
+                    func.date(AIAssessment.created_at) == today,
+                )
+            ).limit(1)
+        )
+        if existing.scalar_one_or_none():
+            continue  # Already assessed today — do not create a duplicate
+
         hr_res = await db.execute(select(HRMetrics).where(HRMetrics.user_id == user.id))
         hr = hr_res.scalar_one_or_none()
 
@@ -384,6 +418,154 @@ async def run_unit_assessment(
         ))
 
     return results
+
+
+# ── POST /assessments/run-all ─────────────────────────────────────────────────
+
+@router.post("/run-all")
+async def run_all_assessments(current_user: OfficerOrAbove, db: DbSession):
+    """
+    Run ML-powered AI assessments for ALL active personnel across all units.
+    Reads real check-in history and HR metrics from the database.
+    Returns a summary: { total, assessed, errors, results }.
+    """
+    # Warm the predictor singleton once upfront
+    if not predictor.is_loaded:
+        predictor.load_models()
+
+    # Fetch every active soldier across all units in one query
+    personnel_res = await db.execute(
+        select(User).where(
+            User.role == UserRole.PERSONNEL,
+            User.is_active == True,
+        )
+    )
+    all_personnel = personnel_res.scalars().all()
+
+    today = datetime.now(timezone.utc).date()
+    assessed = 0
+    skipped = 0
+    errors = 0
+    results = []
+
+    for user in all_personnel:
+        try:
+            # ── Skip if already assessed today (no duplicates) ───────────────
+            existing = await db.execute(
+                select(AIAssessment.id).where(
+                    and_(
+                        AIAssessment.user_id == user.id,
+                        func.date(AIAssessment.created_at) == today,
+                    )
+                ).limit(1)
+            )
+            if existing.scalar_one_or_none():
+                skipped += 1
+                continue
+
+            # ── Load HR metrics ──────────────────────────────────────────────
+            hr_res = await db.execute(select(HRMetrics).where(HRMetrics.user_id == user.id))
+            hr = hr_res.scalar_one_or_none()
+
+            hrv = hr.hrv_baseline_deviation if hr else 5.0
+            duty = hr.avg_weekly_duty_hours if hr else 48.0
+            leave = hr.days_since_last_leave if hr else 0
+            months = hr.deployment_history_months if hr else 0
+            mood_raw = hr.avg_mood_score if hr else 5.0
+            sleep_raw = hr.avg_sleep_recovery if hr else 5.0
+            fatigue_raw = hr.avg_fatigue_level if hr else 5.0
+
+            # ── Load last 14 wellness check-ins ─────────────────────────────
+            checkins_res = await db.execute(
+                select(WellnessCheckin)
+                .where(WellnessCheckin.user_id == user.id)
+                .order_by(WellnessCheckin.checkin_date.desc())
+                .limit(14)
+            )
+            checkins = checkins_res.scalars().all()
+            avg_score = (
+                sum(c.average_score for c in checkins) / len(checkins)
+                if checkins else 3.0
+            )
+
+            checkins_dicts = [
+                {
+                    'overall_score': c.overall_score,
+                    'sleep_score': c.sleep_score,
+                    'physical_score': c.physical_score,
+                    'focus_score': c.focus_score,
+                }
+                for c in checkins
+            ]
+            hr_dict = {
+                'avg_weekly_duty_hours': duty,
+                'days_since_last_leave': leave,
+                'deployment_history_months': months,
+                'hrv_baseline_deviation': hrv,
+            } if hr else None
+
+            # ── Run ML predictor ─────────────────────────────────────────────
+            ml_result = None
+            try:
+                ml_result = predictor.predict(checkins_dicts, hr_dict)
+            except Exception as ml_err:
+                logger.warning("ML prediction failed for user %s: %s", user.id, ml_err)
+
+            # ── Determine risk + narrative ────────────────────────────────────
+            if ml_result:
+                risk = RiskLevel(ml_result['risk_level'])
+                resilience = ml_result['resilience_score']
+                probs = predictor.predict_risk_probabilities(extract_features(checkins_dicts, hr_dict))
+                narr = generate_narrative(ml_result['risk_level'], ml_result['features_dict'], probs)
+                factors = narr['contributing_factors']
+                intervention = narr['recommended_intervention']
+                narrative = narr['ai_narrative']
+            else:
+                # Rule-based fallback when model files are unavailable
+                risk = _classify_risk(avg_score, hrv, leave, duty)
+                resilience = _compute_resilience(mood_raw, sleep_raw, fatigue_raw)
+                factors, intervention, narrative = _generate_narrative(risk, hrv, duty, leave, months)
+
+            # ── Persist assessment ───────────────────────────────────────────
+            assessment = AIAssessment(
+                id=uuid.uuid4(),
+                user_id=user.id,
+                unit_id=user.unit_id,
+                risk_level=risk,
+                resilience_score=resilience,
+                mood_score=round(mood_raw, 1),
+                sleep_recovery=round(sleep_raw, 1),
+                fatigue_level=round(fatigue_raw, 1),
+                hrv_baseline_deviation=hrv,
+                contributing_factors=factors,
+                recommended_intervention=intervention,
+                ai_narrative=narrative,
+                status=AssessmentStatus.PENDING,
+                created_at=datetime.now(timezone.utc),
+            )
+            db.add(assessment)
+            await db.flush()
+
+            assessed += 1
+            results.append({
+                "user_id": str(user.id),
+                "full_name": user.full_name,
+                "risk_level": risk.value,
+                "resilience_score": resilience,
+                "used_ml": ml_result is not None,
+            })
+
+        except Exception as e:
+            logger.error("Assessment failed for user %s: %s", user.id, e)
+            errors += 1
+
+    return {
+        "total": len(all_personnel),
+        "assessed": assessed,
+        "skipped": skipped,
+        "errors": errors,
+        "results": results,
+    }
 
 
 # ── PATCH /assessments/{id}/action ───────────────────────────────────────────
