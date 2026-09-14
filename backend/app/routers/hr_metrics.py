@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from sqlalchemy import select, func
 
-from app.dependencies import OfficerOrAbove, DbSession
+from app.dependencies import OfficerOrAbove, ServiceSession
 from app.models.user import User, Unit, UserRole
 from app.models.hr_metrics import HRMetrics
 from app.models.assessment import AIAssessment
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/hr-metrics", tags=["hr-metrics"])
 
 
 @router.get("/unit-summary", response_model=list[UnitSummary])
-async def unit_summary(_: OfficerOrAbove, db: DbSession):
+async def unit_summary(_: OfficerOrAbove, db: ServiceSession):
     """
     Aggregated welfare metrics per unit.
     Consumed by the web dashboard /overview page KPI cards and risk distribution chart.

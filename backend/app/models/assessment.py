@@ -97,4 +97,16 @@ class AuditLog(Base):
     ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
-    actor: Mapped["User"] = relationship("User", back_populates="audit_logs")  # type: ignore[name-defined]
+    # Disclosure-specific audit fields (nullable — only populated for disclosure actions)
+    justification_category: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    initiator_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
+    approver_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
+    disclosure_request_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("disclosure_requests.id"), nullable=True
+    )
+
+    actor: Mapped["User"] = relationship("User", back_populates="audit_logs", foreign_keys=[actor_id])  # type: ignore[name-defined]

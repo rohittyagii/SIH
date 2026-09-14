@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone, date
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select, func, and_
 
-from app.dependencies import OfficerOrAbove, CurrentUser, DbSession
+from app.dependencies import OfficerOrAbove, WelfareOnly, CurrentUser, DbSession, RlsSession, ServiceSession
 from app.models.user import User, Unit, UserRole
 from app.models.checkin import WellnessCheckin, RiskLevel
 from app.models.hr_metrics import HRMetrics
@@ -94,7 +94,7 @@ def _to_assessment_response(a: AIAssessment) -> AssessmentResponse:
 # ── GET /assessments/triage ───────────────────────────────────────────────────
 
 @router.post("/cleanup-duplicates")
-async def cleanup_duplicate_assessments(_: OfficerOrAbove, db: DbSession):
+async def cleanup_duplicate_assessments(_: WelfareOnly, db: RlsSession):
     """
     Admin utility: delete all but the most recent assessment per user.
     Call once to purge accumulated duplicates from the database.
@@ -131,7 +131,7 @@ async def cleanup_duplicate_assessments(_: OfficerOrAbove, db: DbSession):
 
 
 @router.get("/triage", response_model=list[TriageEntry])
-async def get_triage(_: OfficerOrAbove, db: DbSession):
+async def get_triage(_: WelfareOnly, db: RlsSession):
     """
     Priority-sorted triage queue — ONE entry per soldier (their latest assessment).
     Order: Intervention_Recommended (1) → Monitor (2) → Routine (3)
@@ -188,7 +188,7 @@ async def get_triage(_: OfficerOrAbove, db: DbSession):
 # ── GET /assessments/trends ───────────────────────────────────────────────────
 
 @router.get("/trends", response_model=list[TrendPoint])
-async def get_trends(_: OfficerOrAbove, db: DbSession, weeks: int = Query(26, le=52)):
+async def get_trends(_: OfficerOrAbove, db: ServiceSession, weeks: int = Query(26, le=52)):
     """
     26-week longitudinal trend data for the dashboard overview chart.
     Returns weekly avg_mood, intervention count, and monitor count.
@@ -250,7 +250,7 @@ async def get_trends(_: OfficerOrAbove, db: DbSession, weeks: int = Query(26, le
 # ── GET /assessments/history/{personnelId} ────────────────────────────────────
 
 @router.get("/history/{personnel_id}", response_model=list[AssessmentResponse])
-async def get_assessment_history(personnel_id: str, _: OfficerOrAbove, db: DbSession):
+async def get_assessment_history(personnel_id: str, _: WelfareOnly, db: RlsSession):
     result = await db.execute(
         select(AIAssessment)
         .where(AIAssessment.user_id == personnel_id)
@@ -263,7 +263,7 @@ async def get_assessment_history(personnel_id: str, _: OfficerOrAbove, db: DbSes
 # ── POST /assessments/run/{personnelId} ───────────────────────────────────────
 
 @router.post("/run/{personnel_id}", response_model=RunAssessmentResponse)
-async def run_assessment(personnel_id: str, current_user: OfficerOrAbove, db: DbSession):
+async def run_assessment(personnel_id: str, current_user: WelfareOnly, db: RlsSession):
     """
     Trigger AI assessment for a single soldier.
     Reads check-in history + HR metrics → computes resilience + risk → saves assessment.
@@ -370,8 +370,8 @@ async def run_assessment(personnel_id: str, current_user: OfficerOrAbove, db: Db
 
 @router.post("/run-unit", response_model=list[RunAssessmentResponse])
 async def run_unit_assessment(
-    current_user: OfficerOrAbove,
-    db: DbSession,
+    current_user: WelfareOnly,
+    db: RlsSession,
     unit: str = Query(..., description="Unit name to assess"),
 ):
     """Trigger AI assessments for all personnel in a unit.
@@ -477,7 +477,7 @@ async def run_unit_assessment(
 # ── POST /assessments/run-all ─────────────────────────────────────────────────
 
 @router.post("/run-all")
-async def run_all_assessments(current_user: OfficerOrAbove, db: DbSession):
+async def run_all_assessments(current_user: WelfareOnly, db: RlsSession):
     """
     Run ML-powered AI assessments for ALL active personnel across all units.
     Reads real check-in history and HR metrics from the database.
@@ -628,8 +628,8 @@ async def run_all_assessments(current_user: OfficerOrAbove, db: DbSession):
 async def update_assessment_action(
     assessment_id: str,
     body: ActionUpdate,
-    current_user: OfficerOrAbove,
-    db: DbSession,
+    current_user: WelfareOnly,
+    db: RlsSession,
 ):
     """
     Update triage workflow status.
