@@ -55,29 +55,33 @@ async def get_db():
             await session.close()
 
 
-async def get_rls_db(user_id: str, user_role: str):
-    """
-    Yields an AsyncSession with PostgreSQL session variables set for RLS:
-      - SET LOCAL app.current_user_id  = '<uuid>'
-      - SET LOCAL app.current_user_role = '<role>'
-      - SET LOCAL ROLE <pg_role>          (activates the row-level policies)
+# ── RLS-aware session helpers ─────────────────────────────────────────────────
 
-    This function is not used directly as a FastAPI dependency — it is called
-    by the RlsSession dependency in dependencies.py which injects the current
-    user's id and role.
-    """
-    pg_role = _ROLE_MAP.get(user_role, "app_personnel")
-    async with AsyncSessionLocal() as session:
-        try:
-            # Set within the transaction so it resets automatically on rollback/commit
-            await session.execute(text(f"SET LOCAL app.current_user_id = '{user_id}'"))
-            await session.execute(text(f"SET LOCAL app.current_user_role = '{user_role}'"))
-            await session.execute(text(f"SET LOCAL ROLE {pg_role}"))
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+# Map application UserRole → PostgreSQL NOLOGIN role
+_ROLE_TO_PG_ROLE = {
+    "Personnel": "app_personnel",
+    "Welfare_Officer": "app_welfare",
+    "Commander": "app_commander",
+    "Admin": "app_welfare",  # Admin inherits welfare-level access
+}
 
+
+async def set_rls_context(session: AsyncSession, user_id: str, user_role: str) -> None:
+    """
+    Inject RLS session variables into the current transaction.
+    Uses SET LOCAL so settings are transaction-scoped and automatically
+    reset when the connection returns to the pool.
+    """
+    pg_role = _ROLE_TO_PG_ROLE.get(user_role, "app_personnel")
+    await session.execute(text(f"SET LOCAL ROLE {pg_role}"))
+    await session.execute(text("SET LOCAL app.current_user_id = :uid"), {"uid": str(user_id)})
+    await session.execute(text("SET LOCAL app.current_user_role = :urole"), {"urole": user_role})
+
+
+async def set_service_context(session: AsyncSession) -> None:
+    """
+    Set service-level (app_welfare) context for aggregate-only queries.
+    Use ONLY for endpoints that return aggregate data (counts/trends)
+    and never expose individual rows.
+    """
+    await session.execute(text("SET LOCAL ROLE app_welfare"))

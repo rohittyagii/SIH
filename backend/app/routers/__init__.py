@@ -3,4 +3,3 @@ from __future__ import annotations
 from app.routers import auth, health, wellness, personnel, hr_metrics, assessments, users, support, disclosures, notifications
 
 __all__ = ["auth", "health", "wellness", "personnel", "hr_metrics", "assessments", "users", "support", "disclosures", "notifications"]
-

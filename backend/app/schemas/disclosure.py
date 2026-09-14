@@ -1,50 +1,34 @@
 from __future__ import annotations
-"""Pydantic schemas for the disclosure flow."""
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
+from pydantic import BaseModel
 
-from pydantic import BaseModel, field_validator
+class DisclosureRequestCreate(BaseModel):
+    subject_user_id: str
+    justification_category: str
+    justification_text: str
 
-from app.models.disclosure import DisclosureReason, DisclosureStatus
-
-
-# ── Request bodies ─────────────────────────────────────────────────────────────
-
-class DisclosureCreate(BaseModel):
-    target_user_id: str
-    reason: DisclosureReason
-    scope: str = "wellness,assessments"
-    justification: Optional[str] = None
-
-    @field_validator("scope")
-    @classmethod
-    def validate_scope(cls, v: str) -> str:
-        allowed = {"wellness", "assessments", "support"}
-        parts = {s.strip() for s in v.split(",")}
-        invalid = parts - allowed
-        if invalid:
-            raise ValueError(f"Invalid scope items: {invalid}. Allowed: {allowed}")
-        return ",".join(sorted(parts))
-
-
-class DisclosureReview(BaseModel):
-    """Body for approve/deny actions."""
-    notes: Optional[str] = None
-
-
-# ── Response schemas ───────────────────────────────────────────────────────────
-
-class DisclosureResponse(BaseModel):
+class DisclosureRequestResponse(BaseModel):
     id: str
     requesting_officer_id: str
-    approving_officer_id: Optional[str]
-    target_user_id: str
-    reason: str
+    subject_user_id: str
+    justification_category: str
+    justification_text: str
+    initiator_approved_at: Optional[datetime] = None
+    approver_id: Optional[str] = None
+    approver_decided_at: Optional[datetime] = None
     status: str
-    scope: str
-    justification: Optional[str]
-    expires_at: Optional[datetime]
+    expires_at: Optional[datetime] = None
     created_at: datetime
-    reviewed_at: Optional[datetime]
 
-    model_config = {"from_attributes": True}
+class DisclosureApproval(BaseModel):
+    decision: Literal['approve', 'deny']
+    notes: Optional[str] = None
+
+class DisclosedDataResponse(BaseModel):
+    subject_full_name: str
+    subject_service_id: str
+    subject_unit: str
+    risk_level: str
+    contributing_factors: str
+    recommended_intervention: str

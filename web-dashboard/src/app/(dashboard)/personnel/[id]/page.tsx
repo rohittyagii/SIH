@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
@@ -16,6 +17,7 @@ const riskConfig: Record<string, { label: string; class: string }> = {
 };
 
 export default function PersonnelDetailPage() {
+  const { role } = useAuth();
   const params = useParams();
   const router = useRouter();
   const [detail, setDetail] = useState<any>(null);
@@ -25,11 +27,15 @@ export default function PersonnelDetailPage() {
   const personnelId = Array.isArray(params.id) ? params.id[0] : (params.id as string);
 
   useEffect(() => {
+    if (role === "Commander") {
+      router.push("/overview");
+      return;
+    }
     setDetail(null);
     setLoading(true);
     loadDetail();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personnelId]);
+  }, [personnelId, role, router]);
 
   const loadDetail = async () => {
     try {
@@ -63,7 +69,7 @@ export default function PersonnelDetailPage() {
     }
   };
 
-  if (loading) {
+  if (loading || role === "Commander") {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />

@@ -87,4 +87,28 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+
+  // Disclosures
+  createDisclosure: (data: { subject_user_id: string; justification_category: string; justification_text: string }) =>
+    apiFetch<any>("/disclosures/", { method: "POST", body: JSON.stringify(data) }),
+  initiateDisclosure: (id: string) =>
+    apiFetch<any>(`/disclosures/${id}/initiate`, { method: "POST" }),
+  approveDisclosure: (id: string) =>
+    apiFetch<any>(`/disclosures/${id}/approve`, { method: "POST" }),
+  denyDisclosure: (id: string) =>
+    apiFetch<any>(`/disclosures/${id}/deny`, { method: "POST" }),
+  getDisclosedData: (id: string) =>
+    apiFetch<any>(`/disclosures/${id}/data`),
+  listDisclosures: (status?: string) =>
+    apiFetch<any[]>(`/disclosures/${status ? `?status=${status}` : ""}`),
+
+  // Notifications
+  getNotifications: () =>
+    apiFetch<any[]>("/notifications/"),
+  getUnreadCount: () =>
+    apiFetch<{ count: number }>("/notifications/unread-count"),
+  markNotificationRead: (id: string) =>
+    apiFetch<any>(`/notifications/${id}/read`, { method: "PATCH" }),
+  markAllNotificationsRead: () =>
+    apiFetch<any>("/notifications/read-all", { method: "PATCH" }),
 };

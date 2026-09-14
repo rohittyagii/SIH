@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 interface TriageEntry {
   user_id: string;
@@ -45,14 +45,19 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
 };
 
 export default function TriagePage() {
+  const { role } = useAuth();
   const [entries, setEntries] = useState<TriageEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const router = useRouter();
 
   useEffect(() => {
-    loadTriage();
-  }, []);
+    if (role === "Commander") {
+      router.push("/overview");
+    } else {
+      loadTriage();
+    }
+  }, [role, router]);
 
   const loadTriage = async () => {
     try {
@@ -84,7 +89,7 @@ export default function TriagePage() {
     ? entries
     : entries.filter((e) => e.risk_level === filter);
 
-  if (loading) {
+  if (loading || role === "Commander") {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />

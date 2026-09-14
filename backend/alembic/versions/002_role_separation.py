@@ -1,4 +1,4 @@
-"""Role separation — PostgreSQL RLS, app roles, disclosure_requests, notifications tables
+"""Role separation — RLS, disclosure_requests, notifications
 
 Revision ID: 002_role_separation
 Revises: 001_initial
@@ -15,214 +15,254 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.execute("""
-        -- ── 1. New tables: disclosure_requests & notifications ────────────────
+        -- ================================================================
+        -- 1. PostgreSQL application roles (NOLOGIN — used via SET LOCAL ROLE)
+        -- ================================================================
+        DO $$ BEGIN CREATE ROLE app_welfare NOLOGIN; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+        DO $$ BEGIN CREATE ROLE app_commander NOLOGIN; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+        DO $$ BEGIN CREATE ROLE app_personnel NOLOGIN; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+        -- Allow the connection user (postgres) to assume these roles
+        GRANT app_welfare TO CURRENT_USER;
+        GRANT app_commander TO CURRENT_USER;
+        GRANT app_personnel TO CURRENT_USER;
+
+        -- ================================================================
+        -- 2. New ENUMs
+        -- ================================================================
         DO $$ BEGIN
-            CREATE TYPE disclosurereason AS ENUM (
-                'IMMINENT_RISK', 'WELFARE_CONCERN', 'INVESTIGATION', 'MEDICAL_EMERGENCY'
+            CREATE TYPE justificationcategory AS ENUM (
+                'IMMINENT_RISK', 'INDIVIDUAL_CONSENT',
+                'OPERATIONAL_NECESSITY', 'LEGAL_MANDATE'
             );
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
         DO $$ BEGIN
             CREATE TYPE disclosurestatus AS ENUM (
-                'PENDING', 'APPROVED', 'DENIED', 'EXPIRED'
+                'PENDING_INITIATOR', 'PENDING_APPROVER',
+                'APPROVED', 'DENIED', 'EXPIRED'
             );
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+        -- ================================================================
+        -- 3. New tables
+        -- ================================================================
+
+        -- disclosure_requests
         CREATE TABLE IF NOT EXISTS disclosure_requests (
-            id                  UUID PRIMARY KEY,
+            id UUID PRIMARY KEY,
             requesting_officer_id UUID NOT NULL REFERENCES users(id),
-            approving_officer_id  UUID REFERENCES users(id),         -- NULL until reviewed
-            target_user_id      UUID NOT NULL REFERENCES users(id),
-            reason              disclosurereason NOT NULL,
-            status              disclosurestatus NOT NULL DEFAULT 'PENDING',
-            scope               VARCHAR(120) NOT NULL DEFAULT 'wellness,assessments',
-            justification       TEXT,
-            expires_at          TIMESTAMPTZ,                          -- Set on approval (now + 48h)
-            created_at          TIMESTAMPTZ NOT NULL,
-            reviewed_at         TIMESTAMPTZ
+            subject_user_id UUID NOT NULL REFERENCES users(id),
+            justification_category justificationcategory NOT NULL,
+            justification_text TEXT NOT NULL,
+            initiator_approved_at TIMESTAMPTZ,
+            approver_id UUID REFERENCES users(id),
+            approver_decided_at TIMESTAMPTZ,
+            status disclosurestatus NOT NULL DEFAULT 'PENDING_INITIATOR',
+            disclosed_data_scope TEXT NOT NULL DEFAULT '{}',
+            expires_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS ix_disclosures_requesting ON disclosure_requests(requesting_officer_id);
-        CREATE INDEX IF NOT EXISTS ix_disclosures_target     ON disclosure_requests(target_user_id);
-        CREATE INDEX IF NOT EXISTS ix_disclosures_status     ON disclosure_requests(status);
+        CREATE INDEX IF NOT EXISTS ix_disclosure_status ON disclosure_requests(status);
+        CREATE INDEX IF NOT EXISTS ix_disclosure_officer ON disclosure_requests(requesting_officer_id);
+        CREATE INDEX IF NOT EXISTS ix_disclosure_subject ON disclosure_requests(subject_user_id);
 
-        DO $$ BEGIN
-            CREATE TYPE notificationtype AS ENUM (
-                'DISCLOSURE_REQUESTED',
-                'DISCLOSURE_APPROVED',
-                'DISCLOSURE_DENIED',
-                'DISCLOSURE_EXPIRED',
-                'DATA_ACCESSED',
-                'ASSESSMENT_UPDATED',
-                'SYSTEM'
-            );
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
+        -- notifications
         CREATE TABLE IF NOT EXISTS notifications (
-            id                  UUID PRIMARY KEY,
-            user_id             UUID NOT NULL REFERENCES users(id),
-            title               VARCHAR(200) NOT NULL,
-            body                TEXT NOT NULL,
-            notification_type   notificationtype NOT NULL DEFAULT 'SYSTEM',
-            related_entity_id   VARCHAR(36),         -- disclosure_requests.id or assessment.id
-            is_read             BOOLEAN NOT NULL DEFAULT FALSE,
-            created_at          TIMESTAMPTZ NOT NULL
+            id UUID PRIMARY KEY,
+            user_id UUID NOT NULL REFERENCES users(id),
+            notification_type VARCHAR(50) NOT NULL,
+            title VARCHAR(200) NOT NULL,
+            message TEXT NOT NULL,
+            related_entity_type VARCHAR(50),
+            related_entity_id VARCHAR(36),
+            is_read BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMPTZ NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS ix_notifications_user    ON notifications(user_id);
-        CREATE INDEX IF NOT EXISTS ix_notifications_unread  ON notifications(user_id, is_read);
+        CREATE INDEX IF NOT EXISTS ix_notif_user ON notifications(user_id);
+        CREATE INDEX IF NOT EXISTS ix_notif_unread ON notifications(user_id, is_read) WHERE NOT is_read;
 
-        -- ── 2. Application-level PostgreSQL roles ────────────────────────────────
-        -- These roles are switched into via SET LOCAL ROLE on each transaction.
-        -- They hold the minimum privilege needed to do their job.
+        -- ================================================================
+        -- 4. Extend audit_logs with disclosure-specific columns
+        -- ================================================================
+        ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS justification_category VARCHAR(30);
+        ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS initiator_id UUID REFERENCES users(id);
+        ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS approver_id UUID REFERENCES users(id);
+        ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS disclosure_request_id UUID REFERENCES disclosure_requests(id);
 
-        DO $$ BEGIN
-            CREATE ROLE app_welfare  NOLOGIN;
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+        -- ================================================================
+        -- 5. Table-level GRANTs
+        -- ================================================================
 
-        DO $$ BEGIN
-            CREATE ROLE app_commander NOLOGIN;
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+        -- All roles can read units and users (for JOINs / lookups)
+        GRANT SELECT ON units TO app_welfare, app_commander, app_personnel;
+        GRANT SELECT ON users TO app_welfare, app_commander, app_personnel;
 
-        DO $$ BEGIN
-            CREATE ROLE app_personnel NOLOGIN;
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+        -- wellness_checkins
+        GRANT SELECT, INSERT, UPDATE ON wellness_checkins TO app_welfare;
+        GRANT SELECT, INSERT, UPDATE ON wellness_checkins TO app_personnel;
+        -- commander: no grant on wellness_checkins
 
-        -- Grant connect/usage to the roles (they inherit from the login user)
-        GRANT USAGE ON SCHEMA public TO app_welfare, app_commander, app_personnel;
+        -- ai_assessments
+        GRANT SELECT, INSERT, UPDATE ON ai_assessments TO app_welfare;
+        GRANT SELECT ON ai_assessments TO app_commander;
+        -- commander SELECT is granted but RLS will block all individual rows
 
-        -- app_welfare: full read/write on all tables (care providers)
-        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public
-            TO app_welfare;
-        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_welfare;
+        -- hr_metrics
+        GRANT SELECT, INSERT, UPDATE ON hr_metrics TO app_welfare;
+        GRANT SELECT ON hr_metrics TO app_commander;
+        -- commander SELECT granted but RLS will block individual rows
 
-        -- app_commander: read-only on non-sensitive aggregate tables only;
-        --   explicitly blocked from individual wellness/assessment rows via RLS
-        GRANT SELECT ON units, users, hr_metrics, audit_logs TO app_commander;
-        -- commanders also need to read ai_assessments for aggregate/trends (via bypass session)
-        GRANT SELECT ON ai_assessments, wellness_checkins TO app_commander;
+        -- support_requests
+        GRANT SELECT, INSERT, UPDATE ON support_requests TO app_welfare;
+        GRANT SELECT, INSERT, UPDATE ON support_requests TO app_personnel;
 
-        -- app_personnel: own rows only (enforced by RLS below)
-        GRANT SELECT, INSERT ON wellness_checkins, support_requests TO app_personnel;
-        GRANT SELECT, UPDATE ON users TO app_personnel;
-        GRANT SELECT ON units, hr_metrics TO app_personnel;
-        GRANT SELECT ON notifications TO app_personnel;
-        GRANT UPDATE ON notifications TO app_personnel;
-        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_personnel;
+        -- audit_logs
+        GRANT SELECT, INSERT ON audit_logs TO app_welfare;
+        GRANT INSERT ON audit_logs TO app_commander;
+        GRANT INSERT ON audit_logs TO app_personnel;
 
-        -- ── 3. Enable Row Level Security on sensitive tables ───────────────────
-        -- FORCE applies RLS to table owners too (important for migrations/seeds
-        -- run as the same user that owns the table).
+        -- disclosure_requests
+        GRANT SELECT, INSERT, UPDATE ON disclosure_requests TO app_welfare;
 
-        ALTER TABLE wellness_checkins        ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE wellness_checkins        FORCE  ROW LEVEL SECURITY;
+        -- notifications — all roles can read own (RLS enforced)
+        GRANT SELECT, INSERT, UPDATE ON notifications TO app_welfare, app_commander, app_personnel;
 
-        ALTER TABLE ai_assessments           ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE ai_assessments           FORCE  ROW LEVEL SECURITY;
+        -- activation_codes
+        GRANT SELECT, UPDATE ON activation_codes TO app_welfare, app_personnel;
 
-        ALTER TABLE support_requests         ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE support_requests         FORCE  ROW LEVEL SECURITY;
+        -- ================================================================
+        -- 6. Enable RLS + policies
+        -- ================================================================
 
-        ALTER TABLE notifications            ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE notifications            FORCE  ROW LEVEL SECURITY;
+        -- ── wellness_checkins ──────────────────────────────────────────────
+        ALTER TABLE wellness_checkins ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE wellness_checkins FORCE ROW LEVEL SECURITY;
 
-        -- ── 4. RLS Policies ──────────────────────────────────────────────────
-        -- Each policy uses current_setting('app.current_user_id', TRUE) which is
-        -- injected per-transaction by database.py via SET LOCAL app.current_user_id.
-        -- TRUE = return NULL (not error) when the setting is missing.
+        CREATE POLICY checkins_personnel ON wellness_checkins
+            FOR ALL TO app_personnel
+            USING (user_id::text = current_setting('app.current_user_id', true));
 
-        -- ── wellness_checkins ─────────────────────────────────────────────────
+        CREATE POLICY checkins_welfare ON wellness_checkins
+            FOR ALL TO app_welfare
+            USING (true);
 
-        -- Welfare officers see every row
-        DROP POLICY IF EXISTS wc_welfare_all ON wellness_checkins;
-        CREATE POLICY wc_welfare_all ON wellness_checkins
-            FOR ALL
-            TO app_welfare
-            USING (TRUE)
-            WITH CHECK (TRUE);
+        -- Commander: no policy = default deny (zero rows)
 
-        -- Personnel see only their own rows
-        DROP POLICY IF EXISTS wc_personnel_own ON wellness_checkins;
-        CREATE POLICY wc_personnel_own ON wellness_checkins
-            FOR ALL
-            TO app_personnel
-            USING (user_id::text = current_setting('app.current_user_id', TRUE))
-            WITH CHECK (user_id::text = current_setting('app.current_user_id', TRUE));
+        -- ── ai_assessments ────────────────────────────────────────────────
+        ALTER TABLE ai_assessments ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE ai_assessments FORCE ROW LEVEL SECURITY;
 
-        -- ── ai_assessments ────────────────────────────────────────────────────
+        CREATE POLICY assessments_welfare ON ai_assessments
+            FOR ALL TO app_welfare
+            USING (true);
 
-        DROP POLICY IF EXISTS aa_welfare_all ON ai_assessments;
-        CREATE POLICY aa_welfare_all ON ai_assessments
-            FOR ALL
-            TO app_welfare
-            USING (TRUE)
-            WITH CHECK (TRUE);
+        -- Commander: no policy = default deny
+        -- Aggregate endpoints run as app_welfare via service-level override
 
-        -- ── support_requests ──────────────────────────────────────────────────
+        -- ── hr_metrics ────────────────────────────────────────────────────
+        ALTER TABLE hr_metrics ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE hr_metrics FORCE ROW LEVEL SECURITY;
 
-        DROP POLICY IF EXISTS sr_welfare_all ON support_requests;
-        CREATE POLICY sr_welfare_all ON support_requests
-            FOR ALL
-            TO app_welfare
-            USING (TRUE)
-            WITH CHECK (TRUE);
+        CREATE POLICY hr_welfare ON hr_metrics
+            FOR ALL TO app_welfare
+            USING (true);
 
-        DROP POLICY IF EXISTS sr_personnel_own ON support_requests;
-        CREATE POLICY sr_personnel_own ON support_requests
-            FOR ALL
-            TO app_personnel
-            USING (user_id::text = current_setting('app.current_user_id', TRUE))
-            WITH CHECK (user_id::text = current_setting('app.current_user_id', TRUE));
+        -- Commander: no policy = default deny
 
-        -- ── notifications ─────────────────────────────────────────────────────
+        -- ── support_requests ──────────────────────────────────────────────
+        ALTER TABLE support_requests ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE support_requests FORCE ROW LEVEL SECURITY;
 
-        DROP POLICY IF EXISTS notif_own ON notifications;
+        CREATE POLICY support_personnel ON support_requests
+            FOR ALL TO app_personnel
+            USING (user_id::text = current_setting('app.current_user_id', true));
+
+        CREATE POLICY support_welfare ON support_requests
+            FOR ALL TO app_welfare
+            USING (true);
+
+        -- Commander: no policy = default deny
+
+        -- ── audit_logs ────────────────────────────────────────────────────
+        ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE audit_logs FORCE ROW LEVEL SECURITY;
+
+        CREATE POLICY audit_welfare ON audit_logs
+            FOR ALL TO app_welfare
+            USING (true);
+
+        CREATE POLICY audit_commander_insert ON audit_logs
+            FOR INSERT TO app_commander
+            WITH CHECK (actor_id::text = current_setting('app.current_user_id', true));
+
+        CREATE POLICY audit_personnel_insert ON audit_logs
+            FOR INSERT TO app_personnel
+            WITH CHECK (actor_id::text = current_setting('app.current_user_id', true));
+
+        -- ── disclosure_requests ───────────────────────────────────────────
+        ALTER TABLE disclosure_requests ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE disclosure_requests FORCE ROW LEVEL SECURITY;
+
+        CREATE POLICY disclosure_welfare ON disclosure_requests
+            FOR ALL TO app_welfare
+            USING (true);
+
+        -- ── notifications ─────────────────────────────────────────────────
+        ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
+
         CREATE POLICY notif_own ON notifications
-            FOR ALL
-            TO app_personnel, app_welfare, app_commander
-            USING (user_id::text = current_setting('app.current_user_id', TRUE))
-            WITH CHECK (user_id::text = current_setting('app.current_user_id', TRUE));
-
-        -- Welfare officers bypass notification RLS so they can INSERT for other users
-        DROP POLICY IF EXISTS notif_welfare_all ON notifications;
-        CREATE POLICY notif_welfare_all ON notifications
-            FOR ALL
-            TO app_welfare
-            USING (TRUE)
-            WITH CHECK (TRUE);
-
-        -- Ensure future tables get permissions too
-        ALTER DEFAULT PRIVILEGES IN SCHEMA public
-            GRANT SELECT ON TABLES TO app_commander;
+            FOR ALL TO app_welfare, app_commander, app_personnel
+            USING (user_id::text = current_setting('app.current_user_id', true));
     """)
 
 
 def downgrade() -> None:
     op.execute("""
+        -- Drop RLS policies
+        DROP POLICY IF EXISTS notif_own ON notifications;
+        DROP POLICY IF EXISTS disclosure_welfare ON disclosure_requests;
+        DROP POLICY IF EXISTS audit_personnel_insert ON audit_logs;
+        DROP POLICY IF EXISTS audit_commander_insert ON audit_logs;
+        DROP POLICY IF EXISTS audit_welfare ON audit_logs;
+        DROP POLICY IF EXISTS support_welfare ON support_requests;
+        DROP POLICY IF EXISTS support_personnel ON support_requests;
+        DROP POLICY IF EXISTS hr_welfare ON hr_metrics;
+        DROP POLICY IF EXISTS assessments_welfare ON ai_assessments;
+        DROP POLICY IF EXISTS checkins_welfare ON wellness_checkins;
+        DROP POLICY IF EXISTS checkins_personnel ON wellness_checkins;
+
+        -- Disable RLS
+        ALTER TABLE wellness_checkins DISABLE ROW LEVEL SECURITY;
+        ALTER TABLE ai_assessments DISABLE ROW LEVEL SECURITY;
+        ALTER TABLE hr_metrics DISABLE ROW LEVEL SECURITY;
+        ALTER TABLE support_requests DISABLE ROW LEVEL SECURITY;
+        ALTER TABLE audit_logs DISABLE ROW LEVEL SECURITY;
+        ALTER TABLE disclosure_requests DISABLE ROW LEVEL SECURITY;
+        ALTER TABLE notifications DISABLE ROW LEVEL SECURITY;
+
+        -- Revoke grants
+        REVOKE ALL ON wellness_checkins, ai_assessments, hr_metrics, support_requests,
+            audit_logs, disclosure_requests, notifications, units, users, activation_codes
+            FROM app_welfare, app_commander, app_personnel;
+
+        -- Drop extended audit_logs columns
+        ALTER TABLE audit_logs DROP COLUMN IF EXISTS disclosure_request_id;
+        ALTER TABLE audit_logs DROP COLUMN IF EXISTS approver_id;
+        ALTER TABLE audit_logs DROP COLUMN IF EXISTS initiator_id;
+        ALTER TABLE audit_logs DROP COLUMN IF EXISTS justification_category;
+
         -- Drop new tables
         DROP TABLE IF EXISTS notifications;
         DROP TABLE IF EXISTS disclosure_requests;
 
-        -- Drop new types
-        DROP TYPE IF EXISTS notificationtype;
+        -- Drop new enums
         DROP TYPE IF EXISTS disclosurestatus;
-        DROP TYPE IF EXISTS disclosurereason;
+        DROP TYPE IF EXISTS justificationcategory;
 
-        -- Disable RLS
-        ALTER TABLE IF EXISTS wellness_checkins  DISABLE ROW LEVEL SECURITY;
-        ALTER TABLE IF EXISTS ai_assessments     DISABLE ROW LEVEL SECURITY;
-        ALTER TABLE IF EXISTS support_requests   DISABLE ROW LEVEL SECURITY;
-
-        -- Drop RLS policies
-        DROP POLICY IF EXISTS wc_welfare_all     ON wellness_checkins;
-        DROP POLICY IF EXISTS wc_personnel_own   ON wellness_checkins;
-        DROP POLICY IF EXISTS aa_welfare_all     ON ai_assessments;
-        DROP POLICY IF EXISTS sr_welfare_all     ON support_requests;
-        DROP POLICY IF EXISTS sr_personnel_own   ON support_requests;
-        DROP POLICY IF EXISTS notif_own          ON notifications;
-        DROP POLICY IF EXISTS notif_welfare_all  ON notifications;
-
-        -- Drop app roles
-        DROP ROLE IF EXISTS app_welfare;
-        DROP ROLE IF EXISTS app_commander;
+        -- Drop roles
         DROP ROLE IF EXISTS app_personnel;
+        DROP ROLE IF EXISTS app_commander;
+        DROP ROLE IF EXISTS app_welfare;
     """)

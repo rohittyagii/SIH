@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
-from app.dependencies import WelfareOnly, DbSession
+from app.dependencies import WelfareOnly, RlsSession, DbSession
 from app.models.user import User, Unit
 from app.models.checkin import WellnessCheckin
 from app.models.hr_metrics import HRMetrics
@@ -25,13 +25,13 @@ router = APIRouter(prefix="/personnel", tags=["personnel"])
 
 @router.get("/", response_model=list[PersonnelListItem])
 async def list_personnel(
-    _: WelfareOnly,
-    db: DbSession,
+    current_user: WelfareOnly,
+    db: RlsSession,
     unit: Optional[str] = Query(None, description="Filter by unit name"),
     limit: int = Query(100, le=500),
     offset: int = Query(0, ge=0),
 ):
-    """List all personnel. Optional unit filter. Welfare Officers and Admins only — Commanders blocked."""
+    """List all personnel. Welfare officers and admins only."""
     q = select(User, Unit, HRMetrics).join(Unit, User.unit_id == Unit.id).outerjoin(
         HRMetrics, HRMetrics.user_id == User.id
     ).where(User.role == UserRole.PERSONNEL, User.is_active == True)
@@ -83,11 +83,11 @@ async def list_personnel(
 @router.get("/{personnel_id}", response_model=PersonnelDetail)
 async def get_personnel_detail(
     personnel_id: str,
-    _: WelfareOnly,
-    db: DbSession,
+    current_user: WelfareOnly,
+    db: RlsSession,
 ):
     """
-    Full personnel detail — matches web dashboard expected contract exactly.
+    Full personnel detail — welfare officers and admins only.
     Returns user info, HR metrics, recent wellness history (1-10 scale), and assessments.
     """
     # User + unit

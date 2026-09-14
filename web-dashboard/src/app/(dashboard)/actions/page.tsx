@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
@@ -72,12 +74,18 @@ const ACTION_CARDS = [
 ];
 
 export default function ActionsPage() {
+  const { role } = useAuth();
+  const router = useRouter();
   const [entries, setEntries] = useState<TriageEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (role === "Commander") {
+      router.push("/overview");
+    } else {
+      loadData();
+    }
+  }, [role, router]);
 
   const loadData = async () => {
     try {
@@ -103,7 +111,7 @@ export default function ActionsPage() {
   const acknowledged = entries.filter((e) => e.status === "Acknowledged");
   const completed = entries.filter((e) => e.status === "Action_Taken");
 
-  if (loading) {
+  if (loading || role === "Commander") {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
