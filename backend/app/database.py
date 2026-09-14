@@ -81,7 +81,7 @@ async def set_rls_context(session: AsyncSession, user_id: str, user_role: str) -
     # set_config() supports parameters and is transaction-local when is_local=true
     await session.execute(
         text("SELECT set_config('app.current_user_id', :uid, true)"),
-        {"uid": str(user_id)},
+        {"uid": user_id},
     )
     await session.execute(
         text("SELECT set_config('app.current_user_role', :urole, true)"),

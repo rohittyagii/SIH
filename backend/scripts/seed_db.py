@@ -275,8 +275,8 @@ def compute_resilience(mood: float, sleep: float, fatigue: float) -> int:
     return max(15, min(98, round(raw)))
 
 
-def pick(lst: list, risk: RiskLevel) -> str:
-    return random.choice(lst[risk])
+def pick(options: dict, risk: RiskLevel) -> str:
+    return random.choice(options[risk])
 
 
 def format_factor(template: str, **kwargs) -> str:

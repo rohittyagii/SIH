@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "/Users/rohittyagi/Desktop/SIH/backend/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "/Users/rohittyagi/Desktop/SIH/backend"
+  ]
+}
