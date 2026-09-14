@@ -15,12 +15,12 @@ _ROLE_MAP: dict[str, str] = {
     "Admin":           "app_welfare",   # Admins get full welfare-level access
 }
 
+from sqlalchemy.pool import NullPool
+
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    poolclass=NullPool,
     connect_args={"statement_cache_size": 0, "prepared_statement_cache_size": 0},
 )
 

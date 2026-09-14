@@ -15,7 +15,63 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.execute("""
-        -- ── 1. Application-level PostgreSQL roles ────────────────────────────────
+        -- ── 1. New tables: disclosure_requests & notifications ────────────────
+
+        DO $$ BEGIN
+            CREATE TYPE disclosurereason AS ENUM (
+                'IMMINENT_RISK', 'WELFARE_CONCERN', 'INVESTIGATION', 'MEDICAL_EMERGENCY'
+            );
+        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+        DO $$ BEGIN
+            CREATE TYPE disclosurestatus AS ENUM (
+                'PENDING', 'APPROVED', 'DENIED', 'EXPIRED'
+            );
+        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+        CREATE TABLE IF NOT EXISTS disclosure_requests (
+            id                  UUID PRIMARY KEY,
+            requesting_officer_id UUID NOT NULL REFERENCES users(id),
+            approving_officer_id  UUID REFERENCES users(id),         -- NULL until reviewed
+            target_user_id      UUID NOT NULL REFERENCES users(id),
+            reason              disclosurereason NOT NULL,
+            status              disclosurestatus NOT NULL DEFAULT 'PENDING',
+            scope               VARCHAR(120) NOT NULL DEFAULT 'wellness,assessments',
+            justification       TEXT,
+            expires_at          TIMESTAMPTZ,                          -- Set on approval (now + 48h)
+            created_at          TIMESTAMPTZ NOT NULL,
+            reviewed_at         TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_disclosures_requesting ON disclosure_requests(requesting_officer_id);
+        CREATE INDEX IF NOT EXISTS ix_disclosures_target     ON disclosure_requests(target_user_id);
+        CREATE INDEX IF NOT EXISTS ix_disclosures_status     ON disclosure_requests(status);
+
+        DO $$ BEGIN
+            CREATE TYPE notificationtype AS ENUM (
+                'DISCLOSURE_REQUESTED',
+                'DISCLOSURE_APPROVED',
+                'DISCLOSURE_DENIED',
+                'DISCLOSURE_EXPIRED',
+                'DATA_ACCESSED',
+                'ASSESSMENT_UPDATED',
+                'SYSTEM'
+            );
+        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+        CREATE TABLE IF NOT EXISTS notifications (
+            id                  UUID PRIMARY KEY,
+            user_id             UUID NOT NULL REFERENCES users(id),
+            title               VARCHAR(200) NOT NULL,
+            body                TEXT NOT NULL,
+            notification_type   notificationtype NOT NULL DEFAULT 'SYSTEM',
+            related_entity_id   VARCHAR(36),         -- disclosure_requests.id or assessment.id
+            is_read             BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at          TIMESTAMPTZ NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS ix_notifications_user    ON notifications(user_id);
+        CREATE INDEX IF NOT EXISTS ix_notifications_unread  ON notifications(user_id, is_read);
+
+        -- ── 2. Application-level PostgreSQL roles ────────────────────────────────
         -- These roles are switched into via SET LOCAL ROLE on each transaction.
         -- They hold the minimum privilege needed to do their job.
 
@@ -53,7 +109,7 @@ def upgrade() -> None:
         GRANT UPDATE ON notifications TO app_personnel;
         GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_personnel;
 
-        -- ── 2. Enable Row Level Security on sensitive tables ───────────────────
+        -- ── 3. Enable Row Level Security on sensitive tables ───────────────────
         -- FORCE applies RLS to table owners too (important for migrations/seeds
         -- run as the same user that owns the table).
 
@@ -66,7 +122,10 @@ def upgrade() -> None:
         ALTER TABLE support_requests         ENABLE ROW LEVEL SECURITY;
         ALTER TABLE support_requests         FORCE  ROW LEVEL SECURITY;
 
-        -- ── 3. RLS Policies ──────────────────────────────────────────────────
+        ALTER TABLE notifications            ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE notifications            FORCE  ROW LEVEL SECURITY;
+
+        -- ── 4. RLS Policies ──────────────────────────────────────────────────
         -- Each policy uses current_setting('app.current_user_id', TRUE) which is
         -- injected per-transaction by database.py via SET LOCAL app.current_user_id.
         -- TRUE = return NULL (not error) when the setting is missing.
@@ -89,9 +148,6 @@ def upgrade() -> None:
             USING (user_id::text = current_setting('app.current_user_id', TRUE))
             WITH CHECK (user_id::text = current_setting('app.current_user_id', TRUE));
 
-        -- Commanders are blocked from individual rows (no policy = deny by default)
-        -- They use a privileged bypass session (run as superuser/postgres) for aggregates.
-
         -- ── ai_assessments ────────────────────────────────────────────────────
 
         DROP POLICY IF EXISTS aa_welfare_all ON ai_assessments;
@@ -100,9 +156,6 @@ def upgrade() -> None:
             TO app_welfare
             USING (TRUE)
             WITH CHECK (TRUE);
-
-        -- Commanders blocked from individual rows (aggregate queries bypass RLS at service layer)
-        -- Personnel cannot query ai_assessments at all (no policy for app_personnel)
 
         -- ── support_requests ──────────────────────────────────────────────────
 
@@ -120,66 +173,7 @@ def upgrade() -> None:
             USING (user_id::text = current_setting('app.current_user_id', TRUE))
             WITH CHECK (user_id::text = current_setting('app.current_user_id', TRUE));
 
-        -- ── 4. New tables: disclosure_requests & notifications ────────────────
-
-        DO $$ BEGIN
-            CREATE TYPE disclosurereason AS ENUM (
-                'IMMINENT_RISK', 'WELFARE_CONCERN', 'INVESTIGATION', 'MEDICAL_EMERGENCY'
-            );
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-        DO $$ BEGIN
-            CREATE TYPE disclosurestatus AS ENUM (
-                'PENDING', 'APPROVED', 'DENIED', 'EXPIRED'
-            );
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-        CREATE TABLE IF NOT EXISTS disclosure_requests (
-            id                  UUID PRIMARY KEY,
-            requesting_officer_id UUID NOT NULL REFERENCES users(id),
-            approving_officer_id  UUID REFERENCES users(id),         -- NULL until reviewed
-            target_user_id      UUID NOT NULL REFERENCES users(id),
-            reason              disclosurereason NOT NULL,
-            status              disclosurestatus NOT NULL DEFAULT 'PENDING',
-            -- What data is being disclosed (comma-separated: 'wellness', 'assessments', 'support')
-            scope               VARCHAR(120) NOT NULL DEFAULT 'wellness,assessments',
-            justification       TEXT,
-            expires_at          TIMESTAMPTZ,                          -- Set on approval (now + 48h)
-            created_at          TIMESTAMPTZ NOT NULL,
-            reviewed_at         TIMESTAMPTZ
-        );
-        CREATE INDEX IF NOT EXISTS ix_disclosures_requesting ON disclosure_requests(requesting_officer_id);
-        CREATE INDEX IF NOT EXISTS ix_disclosures_target     ON disclosure_requests(target_user_id);
-        CREATE INDEX IF NOT EXISTS ix_disclosures_status     ON disclosure_requests(status);
-
-        DO $$ BEGIN
-            CREATE TYPE notificationtype AS ENUM (
-                'DISCLOSURE_REQUESTED',
-                'DISCLOSURE_APPROVED',
-                'DISCLOSURE_DENIED',
-                'DISCLOSURE_EXPIRED',
-                'DATA_ACCESSED',
-                'ASSESSMENT_UPDATED',
-                'SYSTEM'
-            );
-        EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-        CREATE TABLE IF NOT EXISTS notifications (
-            id                  UUID PRIMARY KEY,
-            user_id             UUID NOT NULL REFERENCES users(id),
-            title               VARCHAR(200) NOT NULL,
-            body                TEXT NOT NULL,
-            notification_type   notificationtype NOT NULL DEFAULT 'SYSTEM',
-            related_entity_id   VARCHAR(36),         -- disclosure_requests.id or assessment.id
-            is_read             BOOLEAN NOT NULL DEFAULT FALSE,
-            created_at          TIMESTAMPTZ NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS ix_notifications_user    ON notifications(user_id);
-        CREATE INDEX IF NOT EXISTS ix_notifications_unread  ON notifications(user_id, is_read);
-
-        -- Notifications RLS: users see only their own
-        ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE notifications FORCE  ROW LEVEL SECURITY;
+        -- ── notifications ─────────────────────────────────────────────────────
 
         DROP POLICY IF EXISTS notif_own ON notifications;
         CREATE POLICY notif_own ON notifications
