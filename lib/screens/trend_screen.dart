@@ -135,8 +135,15 @@ class _BiometricsCard extends ConsumerWidget {
 }
 
 // ── TrendChart ────────────────────────────────────────────────────────────────
-class _TrendChart extends ConsumerWidget {
+class _TrendChart extends ConsumerStatefulWidget {
   const _TrendChart();
+
+  @override
+  ConsumerState<_TrendChart> createState() => _TrendChartState();
+}
+
+class _TrendChartState extends ConsumerState<_TrendChart> {
+  DimKey? _selectedDim;
 
   /// Converts an [Entry.date] string to an x-axis value 1–30 where
   /// 30 = today and 1 = 30 days ago. Returns null if out of window or unparseable.
@@ -184,7 +191,7 @@ class _TrendChart extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final history = ref.watch(historyProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tickColor = isDark ? const Color(0xFF384C5E) : const Color(0xFF8898A8);
@@ -193,7 +200,7 @@ class _TrendChart extends ConsumerWidget {
     // Build x-label map: show labels at roughly weekly intervals
     final today = DateTime.now();
     final Map<int, String> xLabels = {};
-    const labelOffsets = [1, 8, 15, 22, 30];
+    const labelOffsets = [2, 9, 16, 23, 30];
     const shortMonths = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -233,20 +240,51 @@ class _TrendChart extends ConsumerWidget {
                 Text(tr('30-DAY OVERVIEW', ref),
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: context.rrT6, letterSpacing: 0.10)),
                 const SizedBox(width: 8),
-                // Legend
+                // Legend Scroll Box
                 Expanded(
-                  child: Wrap(
-                    alignment: WrapAlignment.end,
-                    spacing: 10,
-                    runSpacing: 4,
-                    children: dims.map((d) => Row(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    reverse: true, // Align content to the right if it doesn't overflow
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(width: 14, height: 2, decoration: BoxDecoration(borderRadius: BorderRadius.circular(1), color: dimColors[d.key])),
-                        const SizedBox(width: 4),
-                        Text(tr(d.label, ref).split(' ')[0], style: TextStyle(fontSize: 10, color: context.rrT4)),
+                        GestureDetector(
+                          onTap: () => setState(() => _selectedDim = null),
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _selectedDim == null ? (isDark ? Colors.white10 : Colors.black12) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(tr('All', ref), style: TextStyle(fontSize: 10, fontWeight: _selectedDim == null ? FontWeight.w600 : FontWeight.normal, color: _selectedDim == null ? context.rrT2 : context.rrT4)),
+                          ),
+                        ),
+                        ...dims.map((d) {
+                          final isSelected = _selectedDim == d.key;
+                          return GestureDetector(
+                            onTap: () => setState(() => _selectedDim = d.key),
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSelected ? dimColors[d.key]!.withValues(alpha: 0.15) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: dimColors[d.key])),
+                                  const SizedBox(width: 4),
+                                  Text(tr(d.label, ref).split(' ')[0], style: TextStyle(fontSize: 10, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? dimColors[d.key] : context.rrT4)),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                       ],
-                    )).toList(),
+                    ),
                   ),
                 ),
               ],
@@ -265,73 +303,87 @@ class _TrendChart extends ConsumerWidget {
               ),
             )
           else
-            SizedBox(
-              height: 172,
-              child: LineChart(
-                LineChartData(
-                  minX: 1, maxX: 30, minY: 1, maxY: 5,
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    horizontalInterval: 1,
-                    getDrawingHorizontalLine: (_) => FlLine(color: gridColor, strokeWidth: 1),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 1,
-                        reservedSize: 24,
-                        getTitlesWidget: (v, _) => Text(v.toInt().toString(),
-                          style: TextStyle(fontSize: 10, color: tickColor)),
-                      ),
+            Padding(
+              padding: const EdgeInsets.only(right: 18, left: 2),
+              child: SizedBox(
+                height: 172,
+                child: LineChart(
+                  LineChartData(
+                    minX: 1, maxX: 30, minY: 1, maxY: 5,
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      horizontalInterval: 1,
+                      getDrawingHorizontalLine: (_) => FlLine(color: gridColor, strokeWidth: 1),
                     ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 1,
-                        getTitlesWidget: (v, _) {
-                          final label = xLabels[v.toInt()];
-                          if (label == null) return const SizedBox.shrink();
-                          return Text(label, style: TextStyle(fontSize: 10, color: tickColor));
-                        },
-                      ),
-                    ),
-                    topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipItems: (spots) => spots.map((s) {
-                        final dim = dims[s.barIndex];
-                        final col = dimColors[dim.key]!;
-                        return LineTooltipItem(
-                          '${tr(dim.label, ref).split(' ')[0]}: ${s.y.toInt()}',
-                          TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.w600),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  lineBarsData: dims.map((d) {
-                    final spots = spotsFor(d.key);
-                    return LineChartBarData(
-                      spots: spots,
-                      isCurved: spots.length > 2,
-                      preventCurveOverShooting: true,
-                      color: dimColors[d.key],
-                      barWidth: 1.75,
-                      dotData: FlDotData(
-                        show: true,
-                        getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
-                          radius: spots.length == 1 ? 3.0 : 2.0,
-                          color: dimColors[d.key]!,
-                          strokeWidth: 0,
-                          strokeColor: Colors.transparent,
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          reservedSize: 24,
+                          getTitlesWidget: (v, meta) => SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            space: 4,
+                            child: Text(v.toInt().toString(),
+                              style: TextStyle(fontSize: 10, color: tickColor)),
+                          ),
                         ),
                       ),
-                    );
-                  }).toList(),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          reservedSize: 26,
+                          getTitlesWidget: (v, meta) {
+                            final label = xLabels[v.toInt()];
+                            if (label == null) return const SizedBox.shrink();
+                            return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              space: 6,
+                              child: Text(label, style: TextStyle(fontSize: 10, color: tickColor)),
+                            );
+                          },
+                        ),
+                      ),
+                      topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipItems: (spots) => spots.map((s) {
+                          final dim = dims[s.barIndex];
+                          final col = dimColors[dim.key]!;
+                          return LineTooltipItem(
+                            '${tr(dim.label, ref).split(' ')[0]}: ${s.y.toInt()}',
+                            TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.w600),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    lineBarsData: dims
+                        .where((d) => _selectedDim == null || _selectedDim == d.key)
+                        .map((d) {
+                      final spots = spotsFor(d.key);
+                      return LineChartBarData(
+                        spots: spots,
+                        isCurved: spots.length > 2,
+                        preventCurveOverShooting: true,
+                        color: dimColors[d.key],
+                        barWidth: 1.75,
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
+                            radius: spots.length == 1 ? 3.0 : 2.0,
+                            color: dimColors[d.key]!,
+                            strokeWidth: 0,
+                            strokeColor: Colors.transparent,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
