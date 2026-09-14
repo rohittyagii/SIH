@@ -87,6 +87,7 @@ class User(Base):
     )
     support_requests: Mapped[list["SupportRequest"]] = relationship("SupportRequest", back_populates="user")
     audit_logs: Mapped[list["AuditLog"]] = relationship("AuditLog", back_populates="actor")
+    notifications: Mapped[list["Notification"]] = relationship("Notification", back_populates="user")
 
 
 class ActivationCode(Base):

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, health, wellness, personnel, hr_metrics, assessments, users, support
+from app.routers import auth, health, wellness, personnel, hr_metrics, assessments, users, support, disclosures, notifications
 from app.ml.predictor import predictor
 from app.ml.feature_engineering import FEATURE_NAMES
 
@@ -52,6 +52,7 @@ app.include_router(wellness.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(support.router, prefix="/api/v1")
 app.include_router(health.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
 
 # ── Unversioned routes — web dashboard compatibility ─────────────────────────
 # Dashboard expects /auth/login, /auth/me, /personnel/, /assessments/*, etc.
@@ -60,6 +61,9 @@ app.include_router(personnel.router)
 app.include_router(hr_metrics.router)
 app.include_router(assessments.router)
 app.include_router(health.router)
+app.include_router(disclosures.router)
+app.include_router(notifications.router)
+
 
 
 @app.get('/api/v1/ml/status')
