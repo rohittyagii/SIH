@@ -46,7 +46,23 @@ async def unread_count(
         .where(Notification.user_id == current_user.id, Notification.is_read == False)
     )
     count = res.scalar_one()
-    return UnreadCountResponse(count=count)
+    return UnreadCountResponse(unread_count=count)
+
+@router.patch("/read-all", response_model=dict)
+async def mark_all_read(
+    current_user: CurrentUser,
+    db: RlsSession,
+):
+    res = await db.execute(
+        select(Notification)
+        .where(Notification.user_id == current_user.id, Notification.is_read == False)
+    )
+    notifications = res.scalars().all()
+    for n in notifications:
+        n.is_read = True
+    await db.commit()
+    return {"message": f"Marked {len(notifications)} notifications as read", "status": "ok"}
+
 
 @router.patch("/{id}/read", response_model=NotificationResponse)
 async def mark_read(
@@ -77,18 +93,3 @@ async def mark_read(
         is_read=notification.is_read,
         created_at=notification.created_at
     )
-
-@router.patch("/read-all", response_model=dict)
-async def mark_all_read(
-    current_user: CurrentUser,
-    db: RlsSession,
-):
-    res = await db.execute(
-        select(Notification)
-        .where(Notification.user_id == current_user.id, Notification.is_read == False)
-    )
-    notifications = res.scalars().all()
-    for n in notifications:
-        n.is_read = True
-    await db.commit()
-    return {"status": "ok"}

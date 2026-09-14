@@ -4,9 +4,31 @@ from typing import Optional, Literal
 from pydantic import BaseModel
 
 class DisclosureRequestCreate(BaseModel):
-    subject_user_id: str
-    justification_category: str
-    justification_text: str
+    model_config = {"populate_by_name": True}
+
+    # Accept both the formal field name and the test-friendly alias
+    subject_user_id: Optional[str] = None
+    target_user_id: Optional[str] = None   # alias → subject_user_id
+
+    justification_category: Optional[str] = None
+    reason: Optional[str] = None           # alias → justification_category
+
+    justification_text: Optional[str] = None
+    justification: Optional[str] = None   # alias → justification_text
+
+    def get_subject_user_id(self) -> str:
+        v = self.subject_user_id or self.target_user_id
+        if not v:
+            raise ValueError("subject_user_id (or target_user_id) is required")
+        return v
+
+    def get_justification_category(self) -> str:
+        v = self.justification_category or self.reason or "WELFARE_CONCERN"
+        return v
+
+    def get_justification_text(self) -> str:
+        v = self.justification_text or self.justification or ""
+        return v
 
 class DisclosureRequestResponse(BaseModel):
     id: str

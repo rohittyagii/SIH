@@ -69,13 +69,24 @@ _ROLE_TO_PG_ROLE = {
 async def set_rls_context(session: AsyncSession, user_id: str, user_role: str) -> None:
     """
     Inject RLS session variables into the current transaction.
-    Uses SET LOCAL so settings are transaction-scoped and automatically
-    reset when the connection returns to the pool.
+    Uses set_config() with is_local=true so settings are transaction-scoped
+    and automatically reset when the connection returns to the pool.
+
+    Note: SET LOCAL does not support parameterized queries in PostgreSQL.
+    set_config() is used instead because it does support bound parameters.
     """
     pg_role = _ROLE_TO_PG_ROLE.get(user_role, "app_personnel")
+    # SET LOCAL ROLE must use literal (pg_role is always from a trusted internal dict, never user input)
     await session.execute(text(f"SET LOCAL ROLE {pg_role}"))
-    await session.execute(text("SET LOCAL app.current_user_id = :uid"), {"uid": str(user_id)})
-    await session.execute(text("SET LOCAL app.current_user_role = :urole"), {"urole": user_role})
+    # set_config() supports parameters and is transaction-local when is_local=true
+    await session.execute(
+        text("SELECT set_config('app.current_user_id', :uid, true)"),
+        {"uid": str(user_id)},
+    )
+    await session.execute(
+        text("SELECT set_config('app.current_user_role', :urole, true)"),
+        {"urole": user_role},
+    )
 
 
 async def set_service_context(session: AsyncSession) -> None:

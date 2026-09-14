@@ -18,4 +18,4 @@ class NotificationMarkRead(BaseModel):
     notification_ids: list[str]
 
 class UnreadCountResponse(BaseModel):
-    count: int
+    unread_count: int

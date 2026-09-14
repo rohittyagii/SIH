@@ -86,7 +86,7 @@ class User(Base):
         "AIAssessment", back_populates="user", foreign_keys="AIAssessment.user_id"
     )
     support_requests: Mapped[list["SupportRequest"]] = relationship("SupportRequest", back_populates="user")
-    audit_logs: Mapped[list["AuditLog"]] = relationship("AuditLog", back_populates="actor")
+    audit_logs: Mapped[list["AuditLog"]] = relationship("AuditLog", back_populates="actor", foreign_keys="AuditLog.actor_id")
     notifications: Mapped[list["Notification"]] = relationship("Notification", back_populates="user")
 
 

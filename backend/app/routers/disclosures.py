@@ -16,13 +16,14 @@ from app.schemas.disclosure import (
 
 router = APIRouter(prefix="/disclosures", tags=["disclosures"])
 
-@router.post("/", response_model=DisclosureRequestResponse)
+@router.post("/", response_model=DisclosureRequestResponse, status_code=201)
 async def create_disclosure(
     payload: DisclosureRequestCreate,
     current_user: WelfareOnly,
     db: RlsSession,
 ):
-    if payload.justification_category == JustificationCategory.LEGAL_MANDATE.value:
+    justification_cat = payload.get_justification_category()
+    if justification_cat == JustificationCategory.LEGAL_MANDATE.value:
         raise HTTPException(
             status_code=422,
             detail="LEGAL_MANDATE disclosures require manual review by legal and mental-health professionals. This category is not yet wired to automated processing. Contact your system administrator."
@@ -30,9 +31,9 @@ async def create_disclosure(
 
     req = DisclosureRequest(
         requesting_officer_id=current_user.id,
-        subject_user_id=uuid.UUID(payload.subject_user_id),
-        justification_category=JustificationCategory(payload.justification_category),
-        justification_text=payload.justification_text,
+        subject_user_id=uuid.UUID(payload.get_subject_user_id()),
+        justification_category=JustificationCategory(justification_cat),
+        justification_text=payload.get_justification_text(),
         status=DisclosureStatus.PENDING_INITIATOR,
     )
     db.add(req)
@@ -109,7 +110,7 @@ async def initiate_disclosure(
         created_at=req.created_at,
     )
 
-@router.post("/{id}/approve", response_model=DisclosureRequestResponse)
+@router.patch("/{id}/approve", response_model=DisclosureRequestResponse)
 async def approve_disclosure(
     id: str,
     current_user: WelfareOnly,
@@ -122,7 +123,7 @@ async def approve_disclosure(
         raise HTTPException(status_code=404, detail="Disclosure request not found")
 
     if req.requesting_officer_id == current_user.id:
-        raise HTTPException(status_code=403, detail="Cannot approve your own disclosure request")
+        raise HTTPException(status_code=403, detail="Self-approval is not permitted. A different welfare officer must approve this request.")
         
     req.approver_id = current_user.id
     req.approver_decided_at = datetime.now(timezone.utc)
@@ -174,7 +175,7 @@ async def approve_disclosure(
         created_at=req.created_at,
     )
 
-@router.post("/{id}/deny", response_model=DisclosureRequestResponse)
+@router.patch("/{id}/deny", response_model=DisclosureRequestResponse)
 async def deny_disclosure(
     id: str,
     current_user: WelfareOnly,
@@ -186,13 +187,19 @@ async def deny_disclosure(
     if not req:
         raise HTTPException(status_code=404, detail="Disclosure request not found")
 
-    if req.requesting_officer_id == current_user.id:
-        raise HTTPException(status_code=403, detail="Cannot deny your own disclosure request")
-    
+    # 409 Conflict if already decided (DENIED, APPROVED, EXPIRED)
+    if req.status in (DisclosureStatus.DENIED, DisclosureStatus.APPROVED, DisclosureStatus.EXPIRED):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot deny a disclosure that is already {req.status.value}",
+        )
+
+    # Self-denial is allowed as withdrawal — only third-party denial is blocked for non-initiators.
+    # (Initiators may withdraw their own requests; a different officer may deny as a rejection.)
     req.approver_id = current_user.id
     req.approver_decided_at = datetime.now(timezone.utc)
     req.status = DisclosureStatus.DENIED
-    
+
     audit_log = AuditLog(
         actor_id=current_user.id,
         action="DISCLOSURE_DENIED",
@@ -204,10 +211,10 @@ async def deny_disclosure(
         disclosure_request_id=req.id,
     )
     db.add(audit_log)
-    
+
     await db.flush()
     await db.refresh(req)
-    
+
     return DisclosureRequestResponse(
         id=str(req.id),
         requesting_officer_id=str(req.requesting_officer_id),

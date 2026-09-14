@@ -63,8 +63,6 @@ app.include_router(assessments.router)
 app.include_router(disclosures.router)
 app.include_router(notifications.router)
 app.include_router(health.router)
-app.include_router(disclosures.router)
-app.include_router(notifications.router)
 
 
 
