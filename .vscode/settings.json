@@ -4,5 +4,9 @@
   "python.analysis.venv": ".venv",
   "python.analysis.extraPaths": [
     "${workspaceFolder}/backend"
-  ]
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false
 }

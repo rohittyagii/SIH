@@ -21,15 +21,12 @@ subprojects {
 
 // Patch: inject missing `namespace` for old plugins incompatible with AGP 7.3+
 // Specifically fixes: device_calendar 4.3.3 (abandoned, never added namespace DSL)
+// Uses plugins.withId instead of afterEvaluate to avoid "already evaluated" error.
 subprojects {
-    afterEvaluate {
-        if (project.hasProperty("android")) {
-            val android = project.extensions.findByName("android")
-            if (android is com.android.build.gradle.LibraryExtension) {
-                if (android.namespace == null) {
-                    android.namespace = project.group.toString()
-                }
-            }
+    plugins.withId("com.android.library") {
+        val android = extensions.findByType(com.android.build.gradle.LibraryExtension::class.java)
+        if (android != null && android.namespace == null) {
+            android.namespace = project.group.toString()
         }
     }
 }
