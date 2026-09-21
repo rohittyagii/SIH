@@ -17,6 +17,7 @@ import 'data/seed.dart';
 import 'services/checkin_service.dart';
 import 'services/sync_service.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,25 @@ void main() async {
   final container = ProviderContainer();
   final syncService = container.read(syncServiceProvider);
   await syncService.init();
+
+  // Initialise in-app notifications (daily reminders).
+  final notifService = container.read(notificationServiceProvider);
+  await notifService.init();
+
+  // When user taps the reminder notification → open check-in.
+  NotificationService.onNotificationTap = (_) {
+    final screen = container.read(screenProvider);
+    if (screen == AppScreen.app) {
+      final todayDone = container.read(todayDoneProvider);
+      if (todayDone) {
+        container.read(submittedProvider.notifier).state = true;
+      } else {
+        container.read(scoresProvider.notifier).state = emptyScores();
+        container.read(noteProvider.notifier).state = '';
+        container.read(inCheckinProvider.notifier).state = true;
+      }
+    }
+  };
 
   runApp(UncontrolledProviderScope(
     container: container,

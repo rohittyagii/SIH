@@ -7,7 +7,7 @@ import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/toggle.dart';
 import '../widgets/bottom_nav.dart';
-import '../services/calendar_service.dart';
+import '../services/notification_service.dart';
 import '../services/auth_service.dart';
 import '../providers/app_state.dart';
 import '../data/translations.dart';
@@ -106,6 +106,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _deactivate = 'idle'; // 'idle' | 'confirm'
   String _deleteData = 'idle'; // 'idle' | 'confirm'
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedReminder();
+  }
+
+  Future<void> _loadSavedReminder() async {
+    final notifSvc = ref.read(notificationServiceProvider);
+    final saved = await notifSvc.getSavedReminder();
+    if (saved != null && mounted) {
+      setState(() {
+        _reminder = saved.enabled;
+        _reminderTime = saved.timeOfDay;
+      });
+    }
+  }
+
   Language _getCurrentLang(String code) => languages
       .firstWhere((l) => l.code == code, orElse: () => languages.first);
 
@@ -115,35 +132,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return '$h:$m ${tr('daily', ref)}';
   }
 
+  Future<TimeOfDay?> _pickTime() async {
+    return showTimePicker(
+      context: context,
+      initialTime: _reminderTime,
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.indigo,
+            onPrimary: Colors.white,
+            surface: Color(0xFF1A2232),
+          ),
+        ),
+        child: child!,
+      ),
+    );
+  }
+
   Future<void> _toggleReminder() async {
-    final calSvc = ref.read(calendarServiceProvider);
+    final notifSvc = ref.read(notificationServiceProvider);
     if (!_reminder) {
       // Turn on: pick a time then schedule
-      final picked = await showTimePicker(
-        context: context,
-        initialTime: _reminderTime,
-        builder: (ctx, child) => Theme(
-          data: Theme.of(ctx).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.indigo,
-              onPrimary: Colors.white,
-              surface: Color(0xFF1A2232),
-            ),
-          ),
-          child: child!,
-        ),
-      );
+      final picked = await _pickTime();
       if (picked == null) return; // user cancelled
       setState(() {
         _reminderTime = picked;
         _reminder = true;
       });
-      await calSvc.scheduleReminder(picked);
+      await notifSvc.scheduleDailyReminder(picked);
     } else {
-      // Turn off: remove
+      // Turn off: cancel
       setState(() => _reminder = false);
-      await calSvc.removeReminder();
+      await notifSvc.cancelDailyReminder();
     }
+  }
+
+  /// Tap the time label to change the scheduled time without toggling off.
+  Future<void> _changeReminderTime() async {
+    final picked = await _pickTime();
+    if (picked == null) return;
+    setState(() => _reminderTime = picked);
+    final notifSvc = ref.read(notificationServiceProvider);
+    await notifSvc.scheduleDailyReminder(picked);
   }
 
   @override
@@ -363,7 +393,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         _getReminderLabel(),
                         _reminder,
                         _toggleReminder,
-                        true),
+                        true,
+                        onLabelTap: _reminder ? _changeReminderTime : null),
                     _notifRow(
                         context,
                         IconCloudQueue(
@@ -487,26 +518,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _notifRow(BuildContext context, Widget icon, String label, String sub,
-      bool on, Function() toggle, bool first) {
+      bool on, Function() toggle, bool first, {VoidCallback? onLabelTap}) {
     return Column(
       children: [
         if (!first) Divider(color: context.rrDv, height: 26),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(children: [
-              icon,
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: TextStyle(fontSize: 14, color: context.rrT2)),
-                  Text(sub,
-                      style: TextStyle(fontSize: 12, color: context.rrT4)),
-                ],
-              ),
-            ]),
+            GestureDetector(
+              onTap: onLabelTap,
+              child: Row(children: [
+                icon,
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: TextStyle(fontSize: 14, color: context.rrT2)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(sub,
+                            style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        if (onLabelTap != null) ...[
+                          const SizedBox(width: 4),
+                          Icon(Icons.edit, size: 11, color: context.rrT6),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ]),
+            ),
             Toggle(on: on, onToggle: toggle),
           ],
         ),
