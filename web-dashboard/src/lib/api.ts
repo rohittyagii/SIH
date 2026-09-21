@@ -111,4 +111,14 @@ export const api = {
     apiFetch<any>(`/notifications/${id}/read`, { method: "PATCH" }),
   markAllNotificationsRead: () =>
     apiFetch<any>("/notifications/read-all", { method: "PATCH" }),
+
+  // Recommendations
+  createRecommendation: (data: { soldier_id: string; assessment_id?: string; note: string }) =>
+    apiFetch<any>("/recommendations/", { method: "POST", body: JSON.stringify(data) }),
+  getOutgoingRecommendations: () =>
+    apiFetch<any[]>("/recommendations/outgoing"),
+  getIncomingRecommendations: () =>
+    apiFetch<any[]>("/recommendations/incoming"),
+  updateRecommendation: (id: string, data: { status: string; commander_response?: string }) =>
+    apiFetch<any>(`/recommendations/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 };

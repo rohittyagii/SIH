@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, health, wellness, personnel, hr_metrics, assessments, users, support, disclosures, notifications
+from app.routers import auth, health, wellness, personnel, hr_metrics, assessments, users, support, disclosures, notifications, recommendations
 from app.ml.predictor import predictor
 from app.ml.feature_engineering import FEATURE_NAMES
 
@@ -62,6 +62,7 @@ app.include_router(hr_metrics.router)
 app.include_router(assessments.router)
 app.include_router(disclosures.router)
 app.include_router(notifications.router)
+app.include_router(recommendations.router)
 app.include_router(health.router)
 
 

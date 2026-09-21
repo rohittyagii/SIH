@@ -22,6 +22,28 @@ interface UnitSummary {
   unit_name: string;
 }
 
+interface Recommendation {
+  id: string;
+  welfare_officer_name: string;
+  commander_name: string;
+  soldier_id: string;
+  soldier_name: string;
+  soldier_service_id: string;
+  unit_name: string;
+  note: string;
+  risk_level: string;
+  status: string;
+  commander_response: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+const recStatusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
+  Pending: { label: "Pending", color: "text-amber-400", bgColor: "bg-amber-500/10 border-amber-500/30" },
+  Reviewed: { label: "Reviewed", color: "text-sky-400", bgColor: "bg-sky-500/10 border-sky-500/30" },
+  Actioned: { label: "Actioned", color: "text-emerald-400", bgColor: "bg-emerald-500/10 border-emerald-500/30" },
+};
+
 const RISK_COLORS = {
   routine: "#34d399",
   monitor: "#fbbf24",
@@ -35,6 +57,9 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true);
   const [assessing, setAssessing] = useState(false);
   const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [responseNote, setResponseNote] = useState("");
 
   const [assessResult, setAssessResult] = useState<{
     assessed: number;
@@ -52,10 +77,36 @@ export default function OverviewPage() {
       const [s, t] = await Promise.all([api.getUnitSummary(), api.getTrends()]);
       setSummaries(s);
       setTrends(t);
+
+      // Load recommendations for commanders
+      if (role === "Commander") {
+        try {
+          const recs = await api.getIncomingRecommendations();
+          setRecommendations(recs);
+        } catch {
+          // Endpoint may not exist yet; silently ignore
+        }
+      }
     } catch (err) {
       console.error("Failed to load overview:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRecAction = async (recId: string, status: string) => {
+    try {
+      await api.updateRecommendation(recId, {
+        status,
+        commander_response: respondingTo === recId ? responseNote.trim() || undefined : undefined,
+      });
+      setRespondingTo(null);
+      setResponseNote("");
+      // Reload recommendations
+      const recs = await api.getIncomingRecommendations();
+      setRecommendations(recs);
+    } catch (err) {
+      console.error("Failed to update recommendation:", err);
     }
   };
 
@@ -475,6 +526,163 @@ export default function OverviewPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Welfare Recommendations (Commander Only) ────────────────────────── */}
+      {role === "Commander" && recommendations.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+              <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Welfare Recommendations</h2>
+              <p className="text-[12px] text-muted-foreground">Soldiers flagged by welfare officers for your attention</p>
+            </div>
+            <Badge variant="outline" className="ml-auto text-[11px] text-amber-400 border-amber-500/30">
+              {recommendations.filter((r) => r.status === "Pending").length} pending
+            </Badge>
+          </div>
+
+          <div className="space-y-3">
+            {recommendations.map((rec, i) => {
+              const riskCfg: Record<string, { label: string; class: string }> = {
+                Intervention_Recommended: { label: "Needs Support", class: "risk-badge-intervention" },
+                Monitor: { label: "Monitor", class: "risk-badge-monitor" },
+                Routine: { label: "Routine", class: "risk-badge-routine" },
+              };
+              const risk = riskCfg[rec.risk_level] || riskCfg.Routine;
+              const statusCfg = recStatusConfig[rec.status] || recStatusConfig.Pending;
+              const isResponding = respondingTo === rec.id;
+              const timeAgo = getTimeAgo(rec.created_at);
+
+              return (
+                <Card
+                  key={rec.id}
+                  className={`glass-card animate-slide-up transition-all duration-300 ${
+                    rec.status === "Pending" ? "border-amber-500/20" : ""
+                  }`}
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <CardContent className="py-5">
+                    <div className="flex flex-col gap-4">
+                      {/* Top row: soldier info + badges + actions */}
+                      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                        {/* Soldier info */}
+                        <div className="flex items-center gap-3 lg:w-56 shrink-0">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border ${risk.class}`}>
+                            {rec.soldier_name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-medium text-[13px]">{rec.soldier_name}</p>
+                            <p className="text-[11px] text-muted-foreground">{rec.soldier_service_id} • {rec.unit_name}</p>
+                          </div>
+                        </div>
+
+                        {/* Badges */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${risk.class}`}>
+                            {risk.label}
+                          </span>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${statusCfg.bgColor} ${statusCfg.color}`}>
+                            {statusCfg.label}
+                          </span>
+                        </div>
+
+                        {/* Note */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] text-muted-foreground leading-relaxed">
+                            <span className="font-medium text-foreground/90">From {rec.welfare_officer_name}:</span> {rec.note}
+                          </p>
+                        </div>
+
+                        {/* Time + Actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+                          {rec.status === "Pending" && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  if (isResponding) {
+                                    setRespondingTo(null);
+                                    setResponseNote("");
+                                  } else {
+                                    setRespondingTo(rec.id);
+                                    setResponseNote("");
+                                  }
+                                }}
+                                className="px-3 py-1.5 rounded-md bg-muted text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                              >
+                                {isResponding ? "Cancel" : "Reply"}
+                              </button>
+                              <button
+                                onClick={() => handleRecAction(rec.id, "Reviewed")}
+                                className="px-3.5 py-1.5 rounded-md bg-sky-500/10 text-sky-400 text-[12px] font-medium hover:bg-sky-500/20 transition-colors cursor-pointer"
+                              >
+                                Mark Reviewed
+                              </button>
+                              <button
+                                onClick={() => handleRecAction(rec.id, "Actioned")}
+                                className="px-3.5 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[12px] font-medium hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                              >
+                                Mark Actioned
+                              </button>
+                            </>
+                          )}
+                          {rec.status === "Reviewed" && (
+                            <button
+                              onClick={() => handleRecAction(rec.id, "Actioned")}
+                              className="px-3.5 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[12px] font-medium hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                            >
+                              Mark Actioned
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Response input */}
+                      {isResponding && (
+                        <div className="ml-0 lg:ml-[4.5rem] animate-fade-in">
+                          <textarea
+                            value={responseNote}
+                            onChange={(e) => setResponseNote(e.target.value)}
+                            placeholder="Add a response note (optional)..."
+                            className="w-full h-20 px-4 py-3 rounded-xl bg-background border border-border text-[13px] placeholder:text-muted-foreground/60 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                          />
+                        </div>
+                      )}
+
+                      {/* Existing commander response */}
+                      {rec.commander_response && (
+                        <div className="ml-0 lg:ml-[4.5rem] flex items-start gap-2 p-3 rounded-lg bg-sky-500/5 border border-sky-500/15">
+                          <svg className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                          </svg>
+                          <div>
+                            <p className="text-[11px] font-medium text-sky-400">Your Response</p>
+                            <p className="text-[12px] text-muted-foreground mt-0.5">{rec.commander_response}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+function getTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }

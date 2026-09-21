@@ -20,10 +20,32 @@ interface TriageEntry {
   created_at: string;
 }
 
+interface Recommendation {
+  id: string;
+  welfare_officer_name: string;
+  commander_name: string;
+  soldier_id: string;
+  soldier_name: string;
+  soldier_service_id: string;
+  unit_name: string;
+  note: string;
+  risk_level: string;
+  status: string;
+  commander_response: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
 const riskConfig: Record<string, { label: string; class: string }> = {
   Intervention_Recommended: { label: "Needs Support", class: "risk-badge-intervention" },
   Monitor: { label: "Monitor", class: "risk-badge-monitor" },
   Routine: { label: "Routine", class: "risk-badge-routine" },
+};
+
+const recStatusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
+  Pending: { label: "Pending", color: "text-amber-400", bgColor: "bg-amber-500/10 border-amber-500/30" },
+  Reviewed: { label: "Reviewed", color: "text-sky-400", bgColor: "bg-sky-500/10 border-sky-500/30" },
+  Actioned: { label: "Actioned", color: "text-emerald-400", bgColor: "bg-emerald-500/10 border-emerald-500/30" },
 };
 
 const ACTION_CARDS = [
@@ -77,6 +99,7 @@ export default function ActionsPage() {
   const { role } = useAuth();
   const router = useRouter();
   const [entries, setEntries] = useState<TriageEntry[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,8 +112,12 @@ export default function ActionsPage() {
 
   const loadData = async () => {
     try {
-      const data = await api.getTriage();
-      setEntries(data);
+      const [triageData, recData] = await Promise.all([
+        api.getTriage(),
+        api.getOutgoingRecommendations().catch(() => []),
+      ]);
+      setEntries(triageData);
+      setRecommendations(recData);
     } catch (err) {
       console.error("Failed to load:", err);
     } finally {
@@ -110,6 +137,10 @@ export default function ActionsPage() {
   const pending = entries.filter((e) => e.status === "Pending");
   const acknowledged = entries.filter((e) => e.status === "Acknowledged");
   const completed = entries.filter((e) => e.status === "Action_Taken");
+
+  const pendingRecs = recommendations.filter((r) => r.status === "Pending");
+  const reviewedRecs = recommendations.filter((r) => r.status === "Reviewed");
+  const actionedRecs = recommendations.filter((r) => r.status === "Actioned");
 
   if (loading || role === "Commander") {
     return (
@@ -196,6 +227,92 @@ export default function ActionsPage() {
         )}
       </div>
 
+      {/* ── Sent to Commanding Officer ─────────────────────────────────────── */}
+      {recommendations.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+              <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Sent to Commanding Officer</h2>
+              <p className="text-[12px] text-muted-foreground">Soldiers you've recommended for CO attention</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <Badge variant="outline" className="text-[11px] text-amber-400 border-amber-500/30">{pendingRecs.length} pending</Badge>
+              <Badge variant="outline" className="text-[11px] text-sky-400 border-sky-500/30">{reviewedRecs.length} reviewed</Badge>
+              <Badge variant="outline" className="text-[11px] text-emerald-400 border-emerald-500/30">{actionedRecs.length} actioned</Badge>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {recommendations.map((rec, i) => {
+              const risk = riskConfig[rec.risk_level] || riskConfig.Routine;
+              const statusCfg = recStatusConfig[rec.status] || recStatusConfig.Pending;
+              const timeAgo = getTimeAgo(rec.created_at);
+
+              return (
+                <Card
+                  key={rec.id}
+                  className="glass-card animate-slide-up hover:bg-accent/20 transition-colors"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <CardContent className="py-4">
+                    <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                      {/* Soldier info */}
+                      <div className="flex items-center gap-3 lg:w-52 shrink-0">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border ${risk.class}`}>
+                          {rec.soldier_name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[13px]">{rec.soldier_name}</p>
+                          <p className="text-[11px] text-muted-foreground">{rec.soldier_service_id} • {rec.unit_name}</p>
+                        </div>
+                      </div>
+
+                      {/* Risk + Status */}
+                      <div className="flex items-center gap-2 lg:w-48 shrink-0">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${risk.class}`}>
+                          {risk.label}
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusCfg.bgColor} ${statusCfg.color}`}>
+                          {statusCfg.label}
+                        </span>
+                      </div>
+
+                      {/* Note */}
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <p className="text-[13px] text-muted-foreground leading-relaxed">
+                          <span className="font-medium text-foreground/90">Your note:</span> {rec.note}
+                        </p>
+                        {rec.commander_response && (
+                          <div className="flex items-start gap-2 p-2.5 rounded-lg bg-sky-500/5 border border-sky-500/15">
+                            <svg className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                            </svg>
+                            <div>
+                              <p className="text-[11px] font-medium text-sky-400">CO Response — {rec.commander_name}</p>
+                              <p className="text-[12px] text-muted-foreground mt-0.5">{rec.commander_response}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Time */}
+                      <div className="text-[11px] text-muted-foreground shrink-0 lg:text-right">
+                        {timeAgo}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Completed actions summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <Card className="glass-card">
@@ -219,4 +336,14 @@ export default function ActionsPage() {
       </div>
     </div>
   );
+}
+
+function getTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }

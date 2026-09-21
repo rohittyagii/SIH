@@ -60,6 +60,9 @@ OfficerOrAbove = Annotated[User, Depends(require_role(UserRole.WELFARE_OFFICER, 
 # Welfare officers and admins ONLY — commanders excluded (for individual-data endpoints)
 WelfareOnly = Annotated[User, Depends(require_role(UserRole.WELFARE_OFFICER, UserRole.ADMIN))]
 
+# Commanders and admins ONLY — for recommendation-related endpoints
+CommanderOnly = Annotated[User, Depends(require_role(UserRole.COMMANDER, UserRole.ADMIN))]
+
 AdminOnly = Annotated[User, Depends(require_role(UserRole.ADMIN))]
 
 # Plain DB session (no RLS — used for auth lookups, aggregate endpoints with service context)

@@ -9,6 +9,7 @@ from app.models.disclosure import (
     DisclosureRequest, Notification,
     JustificationCategory, DisclosureStatus,
 )
+from app.models.recommendation import CommanderRecommendation, RecommendationStatus
 
 __all__ = [
     "User", "Unit", "ActivationCode", "UserRole",
@@ -16,4 +17,5 @@ __all__ = [
     "HRMetrics",
     "AIAssessment", "AssessmentStatus", "SupportRequest", "AuditLog",
     "DisclosureRequest", "Notification", "JustificationCategory", "DisclosureStatus",
+    "CommanderRecommendation", "RecommendationStatus",
 ]
