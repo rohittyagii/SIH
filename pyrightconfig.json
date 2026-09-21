@@ -1,10 +1,6 @@
 {
-  "executionEnvironments": [
-    {
-      "root": "backend",
-      "venvPath": "backend",
-      "venv": ".venv",
-      "extraPaths": ["."]
-    }
-  ]
+  "pythonPath": "backend/.venv/bin/python",
+  "venvPath": "backend",
+  "venv": ".venv",
+  "extraPaths": ["backend"]
 }

@@ -311,7 +311,7 @@ async def seed():
                 service_id=du["service_id"],
                 username=du["username"],
                 full_name=du["full_name"],
-                unit_id=unit_objs[UNITS[du["unit_idx"]]].id,
+                unit_id=unit_objs[UNITS[int(du["unit_idx"])]].id,
                 pin_hash=hash_password(du["pin"]),
                 role=du["role"],
                 is_active=True,

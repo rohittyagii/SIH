@@ -1,6 +1,9 @@
 from __future__ import annotations
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import DeclarativeBase
+# pyrefly: ignore [missing-import]
 from sqlalchemy import text
 
 from app.config import get_settings
@@ -15,6 +18,7 @@ _ROLE_MAP: dict[str, str] = {
     "Admin":           "app_welfare",   # Admins get full welfare-level access
 }
 
+# pyrefly: ignore [missing-import]
 from sqlalchemy.pool import NullPool
 
 engine = create_async_engine(
