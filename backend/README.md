@@ -123,7 +123,7 @@ Full interactive docs: **http://localhost:8000/docs**
 
 ## Implementation Progress
 
-### ✅ Phase 1 — Foundation (COMPLETE)
+###  Phase 1 — Foundation (COMPLETE)
 - [x] Project structure, Docker, requirements
 - [x] Config (Pydantic Settings + .env)
 - [x] Database (async SQLAlchemy + Alembic migrations)
@@ -133,27 +133,27 @@ Full interactive docs: **http://localhost:8000/docs**
 - [x] FastAPI app with CORS
 - [x] Seed script (50 personnel, 30d history, simulated HRV, AI assessments)
 
-### 🔲 Phase 2 — Dashboard API
+###  Phase 2 — Dashboard API
 - [ ] `/wellness/` router (checkin CRUD)
 - [ ] `/personnel/` router
 - [ ] `/hr-metrics/unit-summary` router
 - [ ] `/assessments/` router (triage, trends, run, action)
 
-### 🔲 Phase 3 — ML Engine
+###  Phase 3 — ML Engine
 - [ ] `ml/risk_predictor.py`
 - [ ] `ml/resilience_scorer.py`
 - [ ] `ml/trend_analyzer.py`
 - [ ] `scripts/train_models.py`
 
-### 🔲 Phase 4 — Mobile API
+###  Phase 4 — Mobile API
 - [ ] `/users/` router (preferences, export, delete)
 - [ ] `/support/` router
 
-### 🔲 Phase 5 — Flutter Integration
+###  Phase 5 — Flutter Integration
 - [ ] Dart service layer (api_client, auth_service, checkin_service)
 - [ ] Screen wiring
 
-### 🔲 Phase 6 — Deploy
+###  Phase 6 — Deploy
 - [ ] Cloud PostgreSQL (Supabase/Neon)
 - [ ] Railway/Render deployment
 

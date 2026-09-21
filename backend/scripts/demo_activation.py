@@ -25,6 +25,6 @@ async def main():
         code = ActivationCode(id=uuid.uuid4(), code="DEMO-1234", unit_id=unit.id, is_used=False)
         session.add(code)
         await session.commit()
-        print("✅ Demo activation code DEMO-1234 created successfully!")
+        print(" Demo activation code DEMO-1234 created successfully!")
 
 asyncio.run(main())

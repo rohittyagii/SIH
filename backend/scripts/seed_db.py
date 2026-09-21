@@ -293,7 +293,7 @@ async def seed():
     AsyncSession_ = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with AsyncSession_() as session:
-        print("🌱 Starting seed...")
+        print(" Starting seed...")
 
         # ── 1. Units ──────────────────────────────────────────────────────────
         unit_objs: dict[str, Unit] = {}
@@ -302,7 +302,7 @@ async def seed():
             session.add(unit)
             unit_objs[unit_name] = unit
         await session.flush()
-        print(f"  ✅ Created {len(UNITS)} units")
+        print(f"   Created {len(UNITS)} units")
 
         # ── 2. Dashboard officers ─────────────────────────────────────────────
         for du in DASHBOARD_USERS:
@@ -334,7 +334,7 @@ async def seed():
             )
             session.add(hr)
         await session.flush()
-        print(f"  ✅ Created {len(DASHBOARD_USERS)} dashboard users (cmd_sharma, wo_meera)")
+        print(f"   Created {len(DASHBOARD_USERS)} dashboard users (cmd_sharma, wo_meera)")
 
         # ── 3. Personnel + activation codes + HR metrics + checkins ───────────
         # Distribute risk tiers: 60% Routine, 25% Monitor, 15% Intervention
@@ -454,7 +454,7 @@ async def seed():
                 checkin_data_list.append(scores)
 
         await session.flush()
-        print(f"  ✅ Created {len(NAMES)} personnel with 30d check-in history")
+        print(f" Created {len(NAMES)} personnel with 30d check-in history")
 
         # ── 4. AI Assessments ─────────────────────────────────────────────────
         # Create assessments for ~20 personnel with non-routine risk
@@ -539,9 +539,9 @@ async def seed():
             session.add(assessment)
 
         await session.commit()
-        print(f"  ✅ Created {min(20, len(assessment_targets))} AI assessments")
-        print("\n🎉 Seed complete!")
-        print("\n📋 Demo credentials:")
+        print(f"  Created {min(20, len(assessment_targets))} AI assessments")
+        print("\n Seed complete!")
+        print("\n Demo credentials:")
         print("  Dashboard Commander : username=cmd_sharma  password=demo123")
         print("  Dashboard WO        : username=wo_meera   password=demo123")
         print("  Flutter (any user)  : PIN=123456 (after activation)")

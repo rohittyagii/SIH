@@ -15,7 +15,7 @@ graph TD
     classDef cache fill:#D32F2F,stroke:#fff,stroke-width:2px,color:#fff;
 
     %% Mobile App (Flutter)
-    subgraph MobileApp ["📱 Mobile App (Flutter & Dart)"]
+    subgraph MobileApp [" Mobile App (Flutter & Dart)"]
         UI_Mobile["User Interface\n(Widgets, fl_chart)"]
         State_Mobile["State Management\n(Riverpod)"]
         Local_DB["Local Storage / Offline\n(Hive, Flutter Secure Storage)"]
@@ -28,7 +28,7 @@ graph TD
     class MobileApp,UI_Mobile,State_Mobile,Local_DB,Network_Mobile mobile;
 
     %% Web Dashboard (Next.js)
-    subgraph WebDashboard ["💻 Web Dashboard (Next.js & React)"]
+    subgraph WebDashboard [" Web Dashboard (Next.js & React)"]
         UI_Web["User Interface\n(Tailwind, Shadcn, Recharts)"]
         Auth_Web["Client Auth\n(JWT Decode)"]
         Network_Web["API Client\n(Axios)"]
@@ -39,7 +39,7 @@ graph TD
     class WebDashboard,UI_Web,Auth_Web,Network_Web web;
 
     %% Backend API (FastAPI)
-    subgraph Backend ["⚙️ Backend API (Python FastAPI)"]
+    subgraph Backend [" Backend API (Python FastAPI)"]
         Router["API Routers\n(Endpoints)"]
         Auth_Middle["Auth & Security\n(JWT, bcrypt, AES-256)"]
         Services["Business Logic\n(Services)"]
@@ -52,7 +52,7 @@ graph TD
     class Backend,Router,Auth_Middle,Services,ORM backend;
 
     %% Data Layer
-    subgraph DataLayer ["🗄️ Data Layer"]
+    subgraph DataLayer [" Data Layer"]
         Redis["Cache & Rate Limiting\n(Redis)"]
         Postgres["Primary Database\n(PostgreSQL via Supabase)"]
     end
@@ -60,7 +60,7 @@ graph TD
     class Redis cache;
 
     %% AI / ML Engine
-    subgraph MLEngine ["🧠 AI / ML Engine (Python)"]
+    subgraph MLEngine [" AI / ML Engine (Python)"]
         Scikit["Model Inference\n(Scikit-Learn, Pandas)"]
         Joblib["Model Loading\n(Joblib)"]
         
@@ -79,8 +79,8 @@ graph TD
     ORM -- "Async Read/Write\n(Alembic Migrations)" --> Postgres
 
     %% Users
-    Personnel(("🪖 Defense Personnel\n(Offline-first Check-ins)")) --> UI_Mobile
-    Commander(("🎖️ Commanders &\nWelfare Officers")) --> UI_Web
+    Personnel((" Defense Personnel\n(Offline-first Check-ins)")) --> UI_Mobile
+    Commander((" Commanders &\nWelfare Officers")) --> UI_Web
 ```
 
 ## Component & Tech Stack Breakdown
