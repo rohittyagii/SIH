@@ -23,6 +23,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
   String _name = '';
   String _pin = '';
   bool _loading = false;
+  bool _slowRequest = false;
   String? _error;
 
   String get _formatted => _raw.length > 4 ? '${_raw.substring(0, 4)}-${_raw.substring(4)}' : _raw;
@@ -40,7 +41,13 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
     if (!_isReady || _loading) return;
     setState(() {
       _loading = true;
+      _slowRequest = false;
       _error = null;
+    });
+
+    // After 5 s, show a hint that the server may be waking up
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted && _loading) setState(() => _slowRequest = true);
     });
 
     try {
@@ -62,11 +69,25 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
       widget.onActivated();
     } catch (e) {
       if (!mounted) return;
+      final msg = e.toString();
+      String errorText;
+      if (msg.contains('400')) {
+        errorText = _isLoginMode
+            ? tr('Invalid credentials.', ref)
+            : tr('Invalid or already used code.', ref);
+      } else if (msg.contains('401')) {
+        errorText = tr('Invalid credentials.', ref);
+      } else if (msg.contains('timeout') || msg.contains('SocketException') || msg.contains('connection')) {
+        errorText = tr('Server is waking up. Please try again in 30 seconds.', ref);
+      } else {
+        errorText = _isLoginMode
+            ? tr('Login failed. Please try again.', ref)
+            : tr('Activation failed. Please try again.', ref);
+      }
       setState(() {
         _loading = false;
-        _error = (e.toString().contains('400') || e.toString().contains('401')) 
-            ? (_isLoginMode ? tr('Invalid credentials.', ref) : tr('Invalid or already used code.', ref)) 
-            : (_isLoginMode ? tr('Login failed. Check network.', ref) : tr('Activation failed. Check network.', ref));
+        _slowRequest = false;
+        _error = errorText;
       });
     }
   }
@@ -108,7 +129,46 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
-                Text(_error!, style: const TextStyle(color: AppColors.score1, fontSize: 14)),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.score1.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.score1.withValues(alpha: 0.25)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: AppColors.score1, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.score1, fontSize: 13))),
+                    ],
+                  ),
+                ),
+              ] else if (_loading && _slowRequest) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.indigo.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.indigo.withValues(alpha: 0.20)),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 14, height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.indigo),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          tr('Server is starting up, please wait…', ref),
+                          style: TextStyle(color: AppColors.indigo, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
               const SizedBox(height: 24),
               Opacity(
