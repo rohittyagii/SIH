@@ -17,9 +17,8 @@ env/
 # Alembic
 alembic/versions/__pycache__/
 
-# ML models (large binary artifacts)
-app/ml/models/*.joblib
-app/ml/models/*.pkl
+# ML models — committed so Render has them at deploy time
+# app/ml/models/*.joblib  ← do NOT ignore these
 
 # Testing
 .pytest_cache/
