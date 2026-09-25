@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({
-  subsets: ["latin"],
+const inter = localFont({
+  src: "../../public/fonts/inter-variable.woff2",
   variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
