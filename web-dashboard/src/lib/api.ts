@@ -1,4 +1,6 @@
-const API_URL = "/api/proxy";
+import { jwtDecode } from "jwt-decode";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://sainiksaathi-api.onrender.com";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -10,9 +12,8 @@ function isTokenExpired(): boolean {
   const token = getToken();
   if (!token) return true;
   try {
-    // JWT payload is the second base64url-encoded segment
-    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-    return payload.exp * 1000 <= Date.now();
+    const payload = jwtDecode(token);
+    return payload.exp ? payload.exp * 1000 <= Date.now() : true;
   } catch {
     return true; // malformed token — treat as expired
   }
@@ -44,10 +45,7 @@ export async function apiFetch<T>(
   }
 
   if (res.status === 401) {
-    // Only log the user out if the local token is genuinely expired/missing.
-    // If the local token is still valid, this 401 is a transient backend error
-    // (e.g. Render cold-start DB issue) — surface it as an error but keep the session.
-    if (typeof window !== "undefined" && isTokenExpired()) {
+    if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
     throw new Error("Unauthorized");
