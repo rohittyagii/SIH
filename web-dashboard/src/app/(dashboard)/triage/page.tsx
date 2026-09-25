@@ -60,6 +60,7 @@ export default function TriagePage() {
   const [recommendNote, setRecommendNote] = useState("");
   const [recommendSubmitting, setRecommendSubmitting] = useState(false);
   const [recommendSuccess, setRecommendSuccess] = useState<string | null>(null);
+  const [recommendError, setRecommendError] = useState<string | null>(null);
 
   useEffect(() => {
     if (role === "Commander") {
@@ -99,16 +100,19 @@ export default function TriagePage() {
     setRecommendModal({ open: true, entry });
     setRecommendNote("");
     setRecommendSuccess(null);
+    setRecommendError(null);
   };
 
   const closeRecommendModal = () => {
     setRecommendModal({ open: false, entry: null });
     setRecommendNote("");
+    setRecommendError(null);
   };
 
   const handleRecommendSubmit = async () => {
     if (!recommendModal.entry || !recommendNote.trim()) return;
     setRecommendSubmitting(true);
+    setRecommendError(null);
     try {
       await api.createRecommendation({
         soldier_id: recommendModal.entry.user_id,
@@ -120,8 +124,13 @@ export default function TriagePage() {
         closeRecommendModal();
         setRecommendSuccess(null);
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Recommendation failed:", err);
+      setRecommendError(
+        err?.message && err.message !== "Unauthorized"
+          ? err.message
+          : "Failed to send recommendation. Please try again."
+      );
     } finally {
       setRecommendSubmitting(false);
     }
@@ -338,6 +347,14 @@ export default function TriagePage() {
                 </p>
               </div>
             </div>
+
+            {/* Error message */}
+            {recommendError && (
+              <div className="mx-6 mb-0 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/25 text-[12px] text-destructive flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{recommendError}</span>
+              </div>
+            )}
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-3">

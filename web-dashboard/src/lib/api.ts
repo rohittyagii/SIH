@@ -31,10 +31,10 @@ export async function apiFetch<T>(
   }
 
   if (res.status === 401) {
+    // Dispatch a custom event so AuthProvider can clean up React state gracefully
+    // instead of doing a hard redirect that bypasses React.
     if (typeof window !== "undefined") {
-      localStorage.removeItem("welfare_token");
-      localStorage.removeItem("welfare_user");
-      window.location.href = "/";
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
     throw new Error("Unauthorized");
   }

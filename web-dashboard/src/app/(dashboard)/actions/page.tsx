@@ -114,7 +114,10 @@ export default function ActionsPage() {
     try {
       const [triageData, recData] = await Promise.all([
         api.getTriage(),
-        api.getOutgoingRecommendations().catch(() => []),
+        api.getOutgoingRecommendations().catch((err) => {
+          console.error("Failed to load outgoing recommendations:", err);
+          return [];
+        }),
       ]);
       setEntries(triageData);
       setRecommendations(recData);
@@ -228,25 +231,31 @@ export default function ActionsPage() {
       </div>
 
       {/* ── Sent to Commanding Officer ─────────────────────────────────────── */}
-      {recommendations.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
-              <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Sent to Commanding Officer</h2>
-              <p className="text-[12px] text-muted-foreground">Soldiers you've recommended for CO attention</p>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <Badge variant="outline" className="text-[11px] text-amber-400 border-amber-500/30">{pendingRecs.length} pending</Badge>
-              <Badge variant="outline" className="text-[11px] text-sky-400 border-sky-500/30">{reviewedRecs.length} reviewed</Badge>
-              <Badge variant="outline" className="text-[11px] text-emerald-400 border-emerald-500/30">{actionedRecs.length} actioned</Badge>
-            </div>
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+            <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+            </svg>
           </div>
+          <div>
+            <h2 className="text-lg font-semibold">Sent to Commanding Officer</h2>
+            <p className="text-[12px] text-muted-foreground">Soldiers you&apos;ve recommended for CO attention</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <Badge variant="outline" className="text-[11px] text-amber-400 border-amber-500/30">{pendingRecs.length} pending</Badge>
+            <Badge variant="outline" className="text-[11px] text-sky-400 border-sky-500/30">{reviewedRecs.length} reviewed</Badge>
+            <Badge variant="outline" className="text-[11px] text-emerald-400 border-emerald-500/30">{actionedRecs.length} actioned</Badge>
+          </div>
+        </div>
 
+        {recommendations.length === 0 ? (
+          <Card className="glass-card">
+            <CardContent className="py-8 text-center text-muted-foreground text-[13px]">
+              No recommendations sent yet. Use &quot;Recommend to CO&quot; on the Triage page.
+            </CardContent>
+          </Card>
+        ) : (
           <div className="space-y-3">
             {recommendations.map((rec, i) => {
               const risk = riskConfig[rec.risk_level] || riskConfig.Routine;
@@ -310,8 +319,8 @@ export default function ActionsPage() {
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Completed actions summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

@@ -72,6 +72,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setHydrated(true);
   }, []);
 
+  // Listen for 401 events dispatched by apiFetch — clean up through React state
+  useEffect(() => {
+    const handler = () => logout();
+    window.addEventListener("auth:unauthorized", handler);
+    return () => window.removeEventListener("auth:unauthorized", handler);
+  }, [logout]);
+
   const login = async (username: string, password: string) => {
     // First, get token
     const tokenRes = await fetch(`${API_URL}/auth/login`, {
