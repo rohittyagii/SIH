@@ -5,6 +5,19 @@ function getToken(): string | null {
   return localStorage.getItem("welfare_token");
 }
 
+/** Returns true only if the stored JWT is missing or past its exp timestamp. */
+function isTokenExpired(): boolean {
+  const token = getToken();
+  if (!token) return true;
+  try {
+    // JWT payload is the second base64url-encoded segment
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload.exp * 1000 <= Date.now();
+  } catch {
+    return true; // malformed token — treat as expired
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
@@ -31,9 +44,10 @@ export async function apiFetch<T>(
   }
 
   if (res.status === 401) {
-    // Dispatch a custom event so AuthProvider can clean up React state gracefully
-    // instead of doing a hard redirect that bypasses React.
-    if (typeof window !== "undefined") {
+    // Only log the user out if the local token is genuinely expired/missing.
+    // If the local token is still valid, this 401 is a transient backend error
+    // (e.g. Render cold-start DB issue) — surface it as an error but keep the session.
+    if (typeof window !== "undefined" && isTokenExpired()) {
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
     throw new Error("Unauthorized");
@@ -46,6 +60,7 @@ export async function apiFetch<T>(
 
   return res.json();
 }
+
 
 // Typed API helpers
 export const api = {
