@@ -136,7 +136,9 @@ class _BiometricsCard extends ConsumerWidget {
 
 // ── TrendChart ────────────────────────────────────────────────────────────────
 class _TrendChart extends ConsumerStatefulWidget {
-  const _TrendChart();
+  const _TrendChart({required this.targetDate, required this.isCalendarMonth});
+  final DateTime targetDate;
+  final bool isCalendarMonth;
 
   @override
   ConsumerState<_TrendChart> createState() => _TrendChartState();
@@ -145,11 +147,9 @@ class _TrendChart extends ConsumerStatefulWidget {
 class _TrendChartState extends ConsumerState<_TrendChart> {
   DimKey? _selectedDim;
 
-  /// Converts an [Entry.date] string to an x-axis value 1–30 where
-  /// 30 = today and 1 = 30 days ago. Returns null if out of window or unparseable.
-  static double? _dayOffset(String entryDate) {
+  static double? dayOffset(String entryDate, DateTime targetDate, bool isCalendarMonth) {
     final today = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        targetDate.year, targetDate.month, targetDate.day);
     const months = {
       'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
       'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
@@ -184,10 +184,16 @@ class _TrendChartState extends ConsumerState<_TrendChart> {
     }
 
     if (date == null) return null;
-    final daysAgo = today.difference(date).inDays;
-    if (daysAgo < 0 || daysAgo > 29) return null;
-    // x = 30 means today, x = 1 means 29 days ago
-    return (30 - daysAgo).toDouble();
+    if (isCalendarMonth) {
+      if (date.year == targetDate.year && date.month == targetDate.month) {
+        return date.day.toDouble();
+      }
+      return null;
+    } else {
+      final daysAgo = today.difference(date).inDays;
+      if (daysAgo < 0 || daysAgo > 29) return null;
+      return (30 - daysAgo).toDouble();
+    }
   }
 
   @override
@@ -198,23 +204,31 @@ class _TrendChartState extends ConsumerState<_TrendChart> {
     final gridColor = isDark ? const Color(0x0DFFFFFF) : const Color(0x0F000000);
 
     // Build x-label map: show labels at roughly weekly intervals
-    final today = DateTime.now();
+    final today = widget.targetDate;
+    final isCal = widget.isCalendarMonth;
+    final daysInMonth = isCal ? DateTime(today.year, today.month + 1, 0).day : 30;
+
     final Map<int, String> xLabels = {};
-    const labelOffsets = [2, 9, 16, 23, 30];
-    const shortMonths = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    for (final offset in labelOffsets) {
-      final d = today.subtract(Duration(days: 30 - offset));
-      xLabels[offset] = '${shortMonths[d.month - 1]} ${d.day}';
+    const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    if (isCal) {
+      final labelOffsets = [1, 8, 15, 22, daysInMonth];
+      for (final day in labelOffsets) {
+        xLabels[day] = '${shortMonths[today.month - 1]} $day';
+      }
+    } else {
+      const labelOffsets = [2, 9, 16, 23, 30];
+      for (final offset in labelOffsets) {
+        final d = today.subtract(Duration(days: 30 - offset));
+        xLabels[offset] = '${shortMonths[d.month - 1]} ${d.day}';
+      }
     }
 
     // Build spots per dimension from real history only
     List<FlSpot> spotsFor(DimKey key) {
       final spots = <FlSpot>[];
       for (final entry in history) {
-        final x = _dayOffset(entry.date);
+        final x = dayOffset(entry.date, widget.targetDate, widget.isCalendarMonth);
         if (x != null) {
           spots.add(FlSpot(x, entry.score(key).toDouble()));
         }
@@ -224,7 +238,7 @@ class _TrendChartState extends ConsumerState<_TrendChart> {
       return spots;
     }
 
-    final hasData = history.any((e) => _dayOffset(e.date) != null);
+    final hasData = history.any((e) => dayOffset(e.date, widget.targetDate, widget.isCalendarMonth) != null);
 
     return RrCard(
       padding: const EdgeInsets.fromLTRB(6, 16, 10, 10),
@@ -237,7 +251,7 @@ class _TrendChartState extends ConsumerState<_TrendChart> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(tr('30-DAY OVERVIEW', ref),
+                Text(tr(widget.isCalendarMonth ? 'MONTHLY OVERVIEW' : '30-DAY OVERVIEW', ref),
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: context.rrT6, letterSpacing: 0.10)),
                 const SizedBox(width: 8),
                 // Legend Scroll Box
@@ -296,7 +310,7 @@ class _TrendChartState extends ConsumerState<_TrendChart> {
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
-                  tr('No check-in data in the last 30 days', ref),
+                  tr(widget.isCalendarMonth ? 'No check-in data for this month' : 'No check-in data in the last 30 days', ref),
                   style: TextStyle(fontSize: 12, color: context.rrT5),
                   textAlign: TextAlign.center,
                 ),
@@ -309,7 +323,7 @@ class _TrendChartState extends ConsumerState<_TrendChart> {
                 height: 172,
                 child: LineChart(
                   LineChartData(
-                    minX: 1, maxX: 30, minY: 1, maxY: 5,
+                    minX: 1, maxX: daysInMonth.toDouble(), minY: 1, maxY: 5,
                     gridData: FlGridData(
                       show: true,
                       drawVerticalLine: false,
@@ -513,31 +527,130 @@ class _DeviceCalendarCardState extends ConsumerState<_DeviceCalendarCard> {
 }
 
 // ── TrendScreen ───────────────────────────────────────────────────────────────
-class TrendScreen extends ConsumerWidget {
+class TrendScreen extends ConsumerStatefulWidget {
   const TrendScreen({super.key, required this.history});
   final List<Entry> history;
 
+  @override
+  ConsumerState<TrendScreen> createState() => _TrendScreenState();
+}
+
+class _TrendScreenState extends ConsumerState<TrendScreen> {
+  String _selectedPeriod = 'Last 30 days';
+  late final List<String> _periods;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _periods = ['Last 30 days'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    for (int i = 0; i < 12; i++) {
+      int month = now.month - i;
+      int year = now.year;
+      while (month <= 0) {
+        month += 12;
+        year -= 1;
+      }
+      _periods.add('${months[month - 1]} $year');
+    }
+  }
+
+  DateTime get _targetDate {
+    final now = DateTime.now();
+    if (_selectedPeriod == 'Last 30 days') return now;
+    final parts = _selectedPeriod.split(' ');
+    if (parts.length == 2) {
+      const months = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6, 'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12};
+      final month = months[parts[0]];
+      final year = int.tryParse(parts[1]);
+      if (month != null && year != null) {
+        return DateTime(year, month + 1, 0); 
+      }
+    }
+    return now;
+  }
+
   double _avg(DimKey key) {
-    if (history.isEmpty) return 0;
-    return history.map((e) => e.score(key)).reduce((a, b) => a + b) / history.length;
+    if (widget.history.isEmpty) return 0;
+    return widget.history.map((e) => e.score(key)).reduce((a, b) => a + b) / widget.history.length;
+  }
+
+  Widget _buildAvgCell(BuildContext context, WidgetRef ref, dynamic d) {
+    final a   = _avg(d.key);
+    final col = scoreColor(a.round());
+    return Row(
+      children: [
+        dimIcon(d.key, size: 15, color: col),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(tr(d.label, ref),
+                style: TextStyle(fontSize: 11, color: context.rrT4)),
+            Row(
+              children: [
+                Text(a.toStringAsFixed(1),
+                    style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600,
+                        color: col,
+                        height: 1.1)),
+                Text('/5',
+                    style: TextStyle(fontSize: 11, color: context.rrT6)),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final streak = ref.watch(streakProvider);
+    final isCalendarMonth = _selectedPeriod != 'Last 30 days';
+    final filteredHistory = widget.history.where((e) => _TrendChartState.dayOffset(e.date, _targetDate, isCalendarMonth) != null).toList();
 
     return Scaffold(
       backgroundColor: context.rrBg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 24, 16, 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Heading row
-              Text(tr('My trend', ref),
-                  style: TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(tr('My trend', ref),
+                      style: TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w600, color: context.rrT1)),
+                  DropdownButton<String>(
+                    value: _selectedPeriod,
+                    dropdownColor: context.rrBgc,
+                    borderRadius: BorderRadius.circular(16),
+                    menuMaxHeight: 300,
+                    underline: const SizedBox(),
+                    icon: Icon(Icons.keyboard_arrow_down, color: context.rrT4),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.rrT3),
+                    items: _periods.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          _selectedPeriod = newValue;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
               const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -564,8 +677,8 @@ class TrendScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // 30-day chart
-              const _TrendChart(),
+              // 30-day or Monthly chart
+              _TrendChart(targetDate: _targetDate, isCalendarMonth: isCalendarMonth),
               const SizedBox(height: 12),
               // 7-day averages
               RrCard(
@@ -579,44 +692,24 @@ class TrendScreen extends ConsumerWidget {
                             color: context.rrT6,
                             letterSpacing: 0.06)),
                     const SizedBox(height: 16),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 3.5,
-                      children: dims.map((d) {
-                        final a   = _avg(d.key);
-                        final col = scoreColor(a.round());
-                        return Row(
+                    Column(
+                      children: [
+                        Row(
                           children: [
-                            dimIcon(d.key, size: 15, color: col),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(tr(d.label, ref),
-                                    style: TextStyle(fontSize: 11, color: context.rrT4)),
-                                Row(
-                                  children: [
-                                    Text(a.toStringAsFixed(1),
-                                        style: TextStyle(
-                                            fontSize: 19,
-                                            fontWeight: FontWeight.w600,
-                                            color: col,
-                                            height: 1.1)),
-                                    Text('/5',
-                                        style: TextStyle(
-                                            fontSize: 11, color: context.rrT6)),
-                                  ],
-                                ),
-                              ],
-                            ),
+                            Expanded(child: _buildAvgCell(context, ref, dims[0])),
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildAvgCell(context, ref, dims[1])),
                           ],
-                        );
-                      }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(child: _buildAvgCell(context, ref, dims[2])),
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildAvgCell(context, ref, dims[3])),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -632,7 +725,7 @@ class TrendScreen extends ConsumerWidget {
               const _ResourceList(),
               const SizedBox(height: 12),
               // History list
-              ...history.asMap().entries.map((e) {
+              ...filteredHistory.asMap().entries.map((e) {
                 final entry = e.value;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -697,7 +790,6 @@ class TrendScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

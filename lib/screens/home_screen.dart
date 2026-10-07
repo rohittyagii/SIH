@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/animated_orbs.dart';
 import '../providers/app_state.dart';
 import '../data/translations.dart';
 
@@ -43,21 +45,11 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: context.rrBg,
       body: Stack(
         children: [
-          // Atmospheric glow
+          // Animated background
+          const AnimatedOrbsBackground(),
           Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -1.4),
-                  radius: 1.1,
-                  colors: [Color(0x17818CF8), Colors.transparent],
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 52, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 52, 20, 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -124,7 +116,11 @@ class HomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const Spacer(),
+                  const Expanded(
+                    child: Center(
+                      child: _BreathingCircle(),
+                    ),
+                  ),
                   // CTA section
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24),
@@ -239,3 +235,167 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
+
+// ── Breathing Circle ────────────────────────────────────────────────────────
+class _BreathingCircle extends ConsumerStatefulWidget {
+  const _BreathingCircle();
+
+  @override
+  ConsumerState<_BreathingCircle> createState() => _BreathingCircleState();
+}
+
+class _BreathingCircleState extends ConsumerState<_BreathingCircle>
+    with TickerProviderStateMixin {
+  late AnimationController _breatheController;
+  late AnimationController _rotateController;
+
+  @override
+  void initState() {
+    super.initState();
+    _breatheController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _breatheController.reverse();
+        } else if (status == AnimationStatus.dismissed) {
+          _breatheController.forward();
+        }
+      });
+    _breatheController.forward();
+
+    _rotateController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _breatheController.dispose();
+    _rotateController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_breatheController, _rotateController]),
+      builder: (context, child) {
+        final scale = 1.0 + (_breatheController.value * 0.6); // Scales from 1x to 1.6x
+        final opacity = 0.05 + (_breatheController.value * 0.1); 
+        final isBreathingIn = _breatheController.status == AnimationStatus.forward || _breatheController.status == AnimationStatus.dismissed;
+        final time = _rotateController.value * 2 * math.pi;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                // Pulsating irregular ring
+                Transform.scale(
+                  scale: scale,
+                  child: Transform.rotate(
+                    angle: time,
+                    child: CustomPaint(
+                      size: const Size(140, 140),
+                      painter: _IrregularCirclePainter(
+                        color: AppColors.indigo.withValues(alpha: opacity),
+                        isFilled: true,
+                        time: time,
+                      ),
+                    ),
+                  ),
+                ),
+                // Inner static irregular circle
+                Transform.rotate(
+                  angle: -time * 0.5,
+                  child: CustomPaint(
+                    size: const Size(140, 140),
+                    painter: _IrregularCirclePainter(
+                      color: AppColors.indigo.withValues(alpha: 0.3),
+                      isFilled: false,
+                      time: time * 1.5,
+                    ),
+                  ),
+                ),
+                // Text
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 800),
+                  child: Text(
+                    isBreathingIn ? tr('Breathe in...', ref) : tr('Breathe out...', ref),
+                    key: ValueKey(isBreathingIn),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.indigo,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _IrregularCirclePainter extends CustomPainter {
+  final Color color;
+  final bool isFilled;
+  final double time;
+
+  _IrregularCirclePainter({
+    required this.color,
+    required this.isFilled,
+    required this.time,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = isFilled ? PaintingStyle.fill : PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final baseRadius = size.width / 2;
+
+    final path = Path();
+    const int points = 180;
+    
+    for (int i = 0; i <= points; i++) {
+      final t = i / points;
+      final theta = t * 2 * math.pi;
+
+      // Map overlapping sine waves around the circumference
+      final r = baseRadius + 
+                (baseRadius * 0.04) * math.sin(3 * theta + time * 2) + 
+                (baseRadius * 0.03) * math.cos(5 * theta - time) +
+                (baseRadius * 0.02) * math.sin(7 * theta + time * 1.5);
+
+      final x = center.dx + r * math.cos(theta);
+      final y = center.dy + r * math.sin(theta);
+
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _IrregularCirclePainter oldDelegate) {
+    return oldDelegate.color != color || 
+           oldDelegate.isFilled != isFilled ||
+           oldDelegate.time != time;
+  }
+}
+
+

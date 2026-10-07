@@ -24,13 +24,27 @@ subprojects {
 // Uses plugins.withId instead of afterEvaluate to avoid "already evaluated" error.
 subprojects {
     plugins.withId("com.android.library") {
-        val android = extensions.findByType(com.android.build.gradle.LibraryExtension::class.java)
-        if (android != null && android.namespace == null) {
-            android.namespace = project.group.toString()
+        val android = extensions.findByType(com.android.build.api.dsl.LibraryExtension::class.java)
+        if (android != null) {
+            if (android.namespace == null) {
+                android.namespace = project.group.toString()
+            }
+            android.compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_11
+                targetCompatibility = JavaVersion.VERSION_11
+            }
         }
     }
 }
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
+}
+
+subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
 }

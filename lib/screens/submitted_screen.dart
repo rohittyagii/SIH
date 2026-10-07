@@ -7,6 +7,7 @@ import '../widgets/rr_card.dart';
 import '../widgets/score_dots.dart';
 import '../providers/app_state.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
 
 // ── SubmittedScreen ───────────────────────────────────────────────────────────
 class SubmittedScreen extends ConsumerWidget {
@@ -116,7 +117,7 @@ class SubmittedScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              GestureDetector(
+              BouncyButton(
                 onTap: onDone,
                 child: Text(tr('Back to home', ref),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.indigo)),

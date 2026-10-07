@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../data/translations.dart';
+import '../providers/app_state.dart';
+import '../data/seed.dart';
+
+import '../widgets/bouncy_button.dart';
 
 // ── Tab definition ─────────────────────────────────────────────────────────
 enum AppTab { home, trend, support, settings }
@@ -22,35 +26,143 @@ class BottomNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.rrBgn,
-        border: Border(top: BorderSide(color: context.rrDv2, width: 1)),
-      ),
-      child: Row(
-        children: _tabs.map((t) {
-          final isActive = active == t.tab;
-          final color = isActive ? AppColors.indigo : context.rrT6;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onTab(t.tab),
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Use the deepest background color so it stands out against the lighter cards
+    final bgColor = context.rrBgd; 
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom > 0
+        ? MediaQuery.of(context).padding.bottom - 12 // Drop it lower than safe area
+        : 16.0;
+
+    return Padding(
+      padding: EdgeInsets.only(left: 16, right: 16, bottom: bottomPadding),
+      child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark ? context.rrDv : Colors.transparent,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              )
+            ],
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              void handleDrag(double x) {
+                final width = constraints.maxWidth;
+                final segment = width / 5;
+                final index = (x / segment).floor().clamp(0, 4);
+                if (index == 0) onTab(AppTab.home);
+                if (index == 1) onTab(AppTab.trend);
+                // index 2 is the check-in button, skip triggering during drag
+                if (index == 3) onTab(AppTab.support);
+                if (index == 4) onTab(AppTab.settings);
+              }
+
+              return GestureDetector(
+                onPanDown: (d) => handleDrag(d.localPosition.dx),
+                onPanUpdate: (d) => handleDrag(d.localPosition.dx),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    t.icon(size: 20, color: color),
-                    const SizedBox(height: 3),
-                    Text(tr(t.label, ref),
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: color)),
+                    _buildTab(context, ref, _tabs[0]),
+                    _buildTab(context, ref, _tabs[1]),
+                    _buildCheckinButton(context, ref),
+                    _buildTab(context, ref, _tabs[2]),
+                    _buildTab(context, ref, _tabs[3]),
                   ],
                 ),
+              );
+            },
+          ),
+        ),
+    );
+  }
+
+  Widget _buildCheckinButton(BuildContext context, WidgetRef ref) {
+    return BouncyButton(
+      onTap: () {
+        final todayDone = ref.read(todayDoneProvider);
+        if (todayDone) {
+          ref.read(submittedProvider.notifier).state = true;
+        } else {
+          ref.read(scoresProvider.notifier).state = emptyScores();
+          ref.read(noteProvider.notifier).state = '';
+          ref.read(inCheckinProvider.notifier).state = true;
+        }
+      },
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.indigo,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.indigo.withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: const Center(
+          child: Icon(Icons.add, color: Colors.white, size: 28),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTab(BuildContext context, WidgetRef ref, dynamic t) {
+    final isActive = active == t.tab;
+    final color = isActive ? AppColors.indigo : context.rrT6;
+    
+    return GestureDetector(
+      onTap: () => onTab(t.tab),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 56, // Fixed width for consistent spacing
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              curve: const ElasticOutCurve(0.7), // Dramatic bounce
+              transform: Matrix4.identity()
+                ..translate(0.0, isActive ? -4.0 : 0.0) // Move up slightly
+                ..scale(isActive ? 1.35 : 1.0), // Large scale
+              transformAlignment: Alignment.center,
+              child: t.icon(size: 24.0, color: color),
+            ),
+            const SizedBox(height: 4),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isActive ? 1.0 : 0.4,
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                style: TextStyle(
+                  fontSize: isActive ? 11 : 9, 
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500, 
+                  color: color,
+                  fontFamily: 'Outfit',
+                ),
+                child: Text(tr(t.label, ref), maxLines: 1, overflow: TextOverflow.visible),
               ),
             ),
-          );
-        }).toList(),
+          ],
+        ),
       ),
     );
   }
 }
+
+

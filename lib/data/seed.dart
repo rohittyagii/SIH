@@ -187,11 +187,6 @@ const resources = [
       color: Color(0xFF56B4E9),
       url: 'https://nimhans.ac.in/'),
   ResourceItem(
-      title: 'Talk to peer support',
-      body: 'Speak with a trained colleague, any time',
-      color: Color(0xFF818CF8),
-      url: 'tel:14416'),
-  ResourceItem(
       title: 'Focus techniques',
       body: 'Short exercises to stay sharp on shift',
       color: Color(0xFFC4A870),
@@ -238,27 +233,42 @@ const languages = [
 ];
 
 // ── Seed history entries ───────────────────────────────────────────────────
-const seedHistory = [
-  Entry(date: 'Wed, Sep 3', overall: 4, sleep: 3, physical: 5, focus: 4),
-  Entry(
-      date: 'Tue, Sep 2',
-      overall: 3,
-      sleep: 2,
-      physical: 4,
-      focus: 3,
-      note: 'Long shift yesterday'),
-  Entry(date: 'Mon, Sep 1', overall: 5, sleep: 5, physical: 5, focus: 5),
-  Entry(date: 'Fri, Aug 29', overall: 4, sleep: 4, physical: 4, focus: 4),
-  Entry(
-      date: 'Thu, Aug 28',
-      overall: 2,
-      sleep: 2,
-      physical: 3,
-      focus: 2,
-      note: 'Poor night — headache through the morning'),
-  Entry(date: 'Wed, Aug 27', overall: 4, sleep: 4, physical: 4, focus: 4),
-  Entry(date: 'Tue, Aug 26', overall: 3, sleep: 3, physical: 4, focus: 3),
-];
+List<Entry> get seedHistory {
+  final now = DateTime.now();
+  String f(int daysAgo) {
+    final d = now.subtract(Duration(days: daysAgo));
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${days[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
+  }
+  return [
+    Entry(date: f(2), overall: 4, sleep: 3, physical: 5, focus: 4),
+    Entry(
+        date: f(3),
+        overall: 3,
+        sleep: 2,
+        physical: 4,
+        focus: 3,
+        note: 'Long shift yesterday'),
+    Entry(date: f(4), overall: 5, sleep: 5, physical: 5, focus: 5),
+    Entry(date: f(6), overall: 4, sleep: 4, physical: 4, focus: 4),
+    Entry(
+        date: f(7),
+        overall: 2,
+        sleep: 2,
+        physical: 3,
+        focus: 2,
+        note: 'Poor night — headache through the morning'),
+    Entry(date: f(8), overall: 4, sleep: 4, physical: 4, focus: 4),
+    Entry(date: f(9), overall: 3, sleep: 3, physical: 4, focus: 3),
+    // Static older entries to demonstrate previous months
+    Entry(date: 'Tue, Sep 15', overall: 3, sleep: 3, physical: 3, focus: 3),
+    Entry(date: 'Thu, Sep 10', overall: 4, sleep: 4, physical: 3, focus: 5),
+    Entry(date: 'Thu, Aug 20', overall: 2, sleep: 2, physical: 3, focus: 2, note: 'Tough field week'),
+    Entry(date: 'Fri, Aug 14', overall: 5, sleep: 5, physical: 5, focus: 4),
+    Entry(date: 'Tue, Jul 28', overall: 4, sleep: 3, physical: 4, focus: 4),
+  ];
+}
 
 // ── Offline demo scores ────────────────────────────────────────────────────
 const offlineScores = {

@@ -6,7 +6,7 @@ import '../widgets/bottom_nav.dart';
 enum AppScreen { pin, activation, consent, app }
 
 // ── Theme provider ─────────────────────────────────────────────────────────
-final themeProvider = StateProvider<bool>((ref) => true); // true = dark
+final themeProvider = StateProvider<bool>((ref) => false); // false = light
 
 // ── Active screen provider ─────────────────────────────────────────────────
 final screenProvider = StateProvider<AppScreen>((ref) => AppScreen.pin);

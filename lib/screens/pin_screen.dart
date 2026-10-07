@@ -5,6 +5,8 @@ import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../services/auth_service.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
+import '../widgets/animated_orbs.dart';
 
 const _pinLength = 6;
 enum _PinState { idle, checking, error, success }
@@ -101,7 +103,7 @@ class _KeypadBtnState extends State<_KeypadBtn> {
     return Expanded(
       child: Opacity(
         opacity: widget.disabled ? 0.45 : 1.0,
-        child: GestureDetector(
+        child: BouncyButton(
           onTapDown: widget.disabled ? null : (_) => setState(() => _pressed = true),
           onTapUp: widget.disabled ? null : (_) {
             setState(() => _pressed = false);
@@ -236,10 +238,13 @@ class _PinScreenState extends ConsumerState<PinScreen> {
     final disabled = _state != _PinState.idle || _serviceId == null;
     return Scaffold(
       backgroundColor: context.rrBg,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
+      body: Stack(
+        children: [
+          const AnimatedOrbsBackground(),
+          SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
               hasScrollBody: false,
               child: Column(
                 children: [
@@ -248,8 +253,6 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 32),
-                        Text(tr('READINESS', ref), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: context.rrT7, letterSpacing: 0.12)),
-                        const SizedBox(height: 24),
                         Container(
                           width: 56, height: 56,
                           decoration: BoxDecoration(
@@ -273,25 +276,10 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                     ),
                   ),
                   _Keypad(onDigit: _handleDigit, onDelete: _handleDelete, disabled: disabled),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: GestureDetector(
-                      onTap: null, // Biometrics not wired for actual secure storage yet
-                      child: Opacity(
-                        opacity: 0.3, // Disabled for SIH demo, PIN only
-                        child: Column(
-                          children: [
-                            IconFingerprint(size: 28, color: context.rrT6),
-                            const SizedBox(height: 6),
-                            Text(tr('Use biometrics', ref), style: TextStyle(fontSize: 12, color: context.rrT5)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 32),
-                    child: GestureDetector(
+                    child: BouncyButton(
                       onTap: widget.onSetupNew,
                       child: Text(tr('New device? Set up this device', ref), style: TextStyle(fontSize: 11, color: context.rrT7)),
                     ),
@@ -301,6 +289,8 @@ class _PinScreenState extends ConsumerState<PinScreen> {
             ),
           ],
         ),
+      ),
+        ],
       ),
     );
   }

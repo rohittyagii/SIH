@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -66,6 +67,23 @@ class SainikSaathiApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      themeAnimationDuration: const Duration(milliseconds: 600),
+      themeAnimationCurve: Curves.easeInOutCubic,
+      builder: (context, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: MediaQuery.of(context)
+                    .textScaler
+                    .clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2),
+              ),
+              child: child!,
+            ),
+          ),
+        );
+      },
       home: const _AppShell(),
     );
   }
@@ -79,36 +97,57 @@ class _AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final screen = ref.watch(screenProvider);
 
+    Widget content;
     switch (screen) {
       case AppScreen.pin:
-        return PinScreen(
+        content = PinScreen(
+          key: const ValueKey('pin'),
           onUnlocked: () =>
               ref.read(screenProvider.notifier).state = AppScreen.app,
           onSetupNew: () =>
               ref.read(screenProvider.notifier).state = AppScreen.activation,
         );
+        break;
 
       case AppScreen.activation:
-        return ActivationScreen(
+        content = ActivationScreen(
+          key: const ValueKey('activation'),
           onActivated: () =>
               ref.read(screenProvider.notifier).state = AppScreen.consent,
         );
+        break;
 
       case AppScreen.consent:
-        return ConsentScreen(
+        content = ConsentScreen(
+          key: const ValueKey('consent'),
           onAgree: () =>
               ref.read(screenProvider.notifier).state = AppScreen.app,
         );
+        break;
 
       case AppScreen.app:
-        return const _MainApp();
+        content = const _MainApp(key: ValueKey('app'));
+        break;
     }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      child: content,
+    );
   }
 }
 
 // ── Main app — bottom-tab shell + check-in overlays ─────────────────────────
 class _MainApp extends ConsumerStatefulWidget {
-  const _MainApp();
+  const _MainApp({super.key});
 
   @override
   ConsumerState<_MainApp> createState() => _MainAppState();
@@ -183,9 +222,12 @@ class _MainAppState extends ConsumerState<_MainApp> {
     final isDark = ref.watch(themeProvider);
     final streak = ref.watch(streakProvider);
 
-    // ── Check-in active ────────────────────────────────────────────────────
+    // ── Build Main Content ─────────────────────────────────────────────────
+    Widget mainContent;
+
     if (inCheckin && !submitted) {
-      return CheckinScreen(
+      mainContent = CheckinScreen(
+        key: const ValueKey('checkin'),
         scores: scores,
         note: note,
         onScoreChanged: (k, n) {
@@ -194,7 +236,6 @@ class _MainAppState extends ConsumerState<_MainApp> {
         },
         onNoteChanged: (s) => ref.read(noteProvider.notifier).state = s,
         onSubmit: () async {
-          // Send to API
           try {
             final chkSvc = ref.read(checkinServiceProvider);
             await chkSvc.submitCheckin(
@@ -205,7 +246,6 @@ class _MainAppState extends ConsumerState<_MainApp> {
               note: note,
             );
           } catch (e) {
-            // Save offline if failed
             final syncSvc = ref.read(syncServiceProvider);
             await syncSvc.saveOfflineCheckin({
               'overall_score': scores[DimKey.overall]!,
@@ -226,11 +266,9 @@ class _MainAppState extends ConsumerState<_MainApp> {
         },
         onBack: () => ref.read(inCheckinProvider.notifier).state = false,
       );
-    }
-
-    // ── Submitted ──────────────────────────────────────────────────────────
-    if (submitted) {
-      return SubmittedScreen(
+    } else if (submitted) {
+      mainContent = SubmittedScreen(
+        key: const ValueKey('submitted'),
         scores: scores,
         note: note,
         onDone: () {
@@ -238,21 +276,115 @@ class _MainAppState extends ConsumerState<_MainApp> {
           ref.read(tabProvider.notifier).state = AppTab.home;
         },
       );
+    } else {
+      mainContent = Scaffold(
+        key: const ValueKey('tabs'),
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        backgroundColor: context.rrBg,
+        body: Stack(
+          children: [
+            // 1. The Tabs Content (now directly in Stack to go edge-to-edge)
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.05, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: KeyedSubtree(
+                key: ValueKey(tab),
+                child: _tabBody(context, ref, tab, history, todayDone, isDark, streak),
+              ),
+            ),
+            
+            // 2. Top Blurry Gradient Mask (for status bar legibility)
+            Positioned(
+              top: 0, left: 0, right: 0,
+              height: MediaQuery.of(context).padding.top + 32,
+              child: IgnorePointer(
+                child: ClipRect(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.black, Colors.transparent],
+                      stops: [0.3, 1.0],
+                    ).createShader(bounds),
+                    blendMode: BlendMode.dstIn,
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
+                      child: Container(color: context.rrBg.withOpacity(0.6)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // 3. Bottom Blurry Gradient Mask (so content smoothly vanishes under nav island)
+            Positioned(
+              bottom: 0, left: 0, right: 0,
+              height: 120, 
+              child: IgnorePointer(
+                child: ClipRect(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Colors.black, Colors.transparent],
+                      stops: [0.1, 1.0],
+                    ).createShader(bounds),
+                    blendMode: BlendMode.dstIn,
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
+                      child: Container(color: context.rrBg.withOpacity(0.6)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // 4. Floating Navigation Island
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: BottomNav(
+                active: tab,
+                onTab: (t) => ref.read(tabProvider.notifier).state = t,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    // ── Normal tab layout ──────────────────────────────────────────────────
-    return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-              child: _tabBody(
-                  context, ref, tab, history, todayDone, isDark, streak)),
-          BottomNav(
-            active: tab,
-            onTab: (t) => ref.read(tabProvider.notifier).state = t,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.05),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
           ),
-        ],
-      ),
+        );
+      },
+      child: mainContent,
     );
   }
 

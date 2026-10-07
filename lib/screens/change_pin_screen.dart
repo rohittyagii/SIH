@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import '../services/auth_service.dart';
 import '../widgets/rr_card.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
 
 class ChangePinScreen extends ConsumerStatefulWidget {
   const ChangePinScreen({super.key});
@@ -50,12 +51,22 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
     try {
       await ref.read(authServiceProvider).changePin(current, newPin);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(tr('PIN successfully changed', ref)),
-          backgroundColor: AppColors.score5,
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: context.rrBgc,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(tr('Success', ref), style: TextStyle(color: context.rrT1, fontWeight: FontWeight.w600)),
+          content: Text(tr('PIN successfully changed.', ref), style: TextStyle(color: context.rrT3)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(tr('OK', ref), style: const TextStyle(color: AppColors.indigo, fontWeight: FontWeight.w600)),
+            ),
+          ],
         ),
       );
+      if (!mounted) return;
       Navigator.of(context).pop();
     } catch (e) {
       setState(() {
@@ -101,7 +112,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
+              BouncyButton(
                 onTap: () => Navigator.of(context).pop(),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -136,7 +147,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
                 ),
 
               const SizedBox(height: 32),
-              GestureDetector(
+              BouncyButton(
                 onTap: _isLoading ? null : _submit,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),

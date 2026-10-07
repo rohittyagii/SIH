@@ -5,6 +5,7 @@ import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
 
 // ── ConsentScreen ────────────────────────────────────────────────────────────
 class ConsentScreen extends ConsumerStatefulWidget {
@@ -182,7 +183,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
               ],
               const SizedBox(height: 32),
               // Agree button
-              GestureDetector(
+              BouncyButton(
                 onTap: widget.onAgree,
                 child: Container(
                   width: double.infinity,
@@ -208,7 +209,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
               ),
               const SizedBox(height: 16),
               Center(
-                child: GestureDetector(
+                child: BouncyButton(
                   onTap: () => setState(() => _expanded = !_expanded),
                   child: Text(
                     _expanded ? tr('Show less', ref) : tr('Learn more about data handling', ref),

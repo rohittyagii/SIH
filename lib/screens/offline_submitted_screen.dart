@@ -6,6 +6,7 @@ import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/score_dots.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
 
 // ── OfflineSubmittedScreen ────────────────────────────────────────────────────
 class OfflineSubmittedScreen extends ConsumerWidget {
@@ -192,7 +193,7 @@ class OfflineSubmittedScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 28),
                   // Back to home
-                  GestureDetector(
+                  BouncyButton(
                     onTap: onDone,
                     child: Container(
                       width: double.infinity,

@@ -6,6 +6,7 @@ import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../services/auth_service.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
 
 // ── ActivationScreen ────────────────────────────────────────────────────────
 class ActivationScreen extends ConsumerStatefulWidget {
@@ -228,7 +229,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              GestureDetector(
+              BouncyButton(
                 onTap: _active ? _submit : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -250,7 +251,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
               ),
               const SizedBox(height: 24),
               Center(
-                child: GestureDetector(
+                child: BouncyButton(
                   onTap: _loading ? null : () {
                     setState(() {
                       _isLoginMode = !_isLoginMode;

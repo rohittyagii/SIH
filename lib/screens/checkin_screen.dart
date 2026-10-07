@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../theme/colors.dart';
 import '../data/seed.dart';
 import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../widgets/scale_picker.dart';
 import '../data/translations.dart';
+import '../widgets/bouncy_button.dart';
 
 // ── DimCard ──────────────────────────────────────────────────────────────────
 class _DimCard extends ConsumerWidget {
@@ -106,7 +108,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Back
-              GestureDetector(
+              BouncyButton(
                 onTap: widget.onBack,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -118,7 +120,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
               ),
               const SizedBox(height: 12),
               // Heading
-              Text('Thursday, 4 Sep 2026', style: TextStyle(fontSize: 13, color: context.rrT4)),
+              Text(DateFormat('EEEE, d MMM yyyy').format(DateTime.now()), style: TextStyle(fontSize: 13, color: context.rrT4)),
               const SizedBox(height: 4),
               Text(tr('Daily readiness check-in', ref),
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600, color: context.rrT1, height: 1.2)),
@@ -188,7 +190,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
               ),
               const SizedBox(height: 12),
               // Submit
-              GestureDetector(
+              BouncyButton(
                 onTap: allDone ? widget.onSubmit : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),

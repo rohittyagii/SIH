@@ -53,92 +53,79 @@
   --color-risk-intervention: var(--risk-intervention);
 }
 
-/* ── Light mode: rosewood palette ──────────────────────────────────────────
-   Anchors:
-     #fcfdff  → background          oklch(0.99 0.004 350)
-     #9d3e5c  → primary             oklch(0.46 0.10 350)
-     #be8296  → ring / accent cue   oklch(0.60 0.09 350)
-*/
+/* ── Light mode: rosewood palette ────────────────────────────────────────── */
 :root {
-  --background: oklch(0.99 0.004 350);        /* #fcfdff — near-white, provided */
-  --foreground: oklch(0.18 0.04 350);         /* deep rosewood text */
+  --background: oklch(0.98 0.01 350);         /* sleek off-white */
+  --foreground: oklch(0.15 0.04 350);         /* deep text */
   --card: oklch(1 0 0);                        /* pure white cards */
-  --card-foreground: oklch(0.18 0.04 350);
+  --card-foreground: oklch(0.15 0.04 350);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.04 350);
+  --popover-foreground: oklch(0.15 0.04 350);
   --primary: oklch(0.46 0.10 350);            /* #9d3e5c — deep crimson-rose */
   --primary-foreground: oklch(0.99 0 0);      /* white text on primary */
-  --secondary: oklch(0.95 0.012 350);         /* soft rose secondary surface */
-  --secondary-foreground: oklch(0.28 0.05 350);
-  --muted: oklch(0.95 0.010 350);
-  --muted-foreground: oklch(0.52 0.04 350);
-  --accent: oklch(0.93 0.018 350);            /* rose-tinted accent surface */
-  --accent-foreground: oklch(0.28 0.05 350);
+  --secondary: oklch(0.96 0.01 350);         /* soft surface */
+  --secondary-foreground: oklch(0.25 0.05 350);
+  --muted: oklch(0.96 0.01 350);
+  --muted-foreground: oklch(0.55 0.02 350);
+  --accent: oklch(0.94 0.015 350);            /* tinted accent surface */
+  --accent-foreground: oklch(0.25 0.05 350);
   --destructive: oklch(0.60 0.18 25);
-  --border: oklch(0.90 0.012 350);
-  --input: oklch(0.90 0.012 350);
-  --ring: oklch(0.60 0.09 350);               /* #be8296 — muted rose focus ring */
-  /* Chart colors — harmonious but distinct for readability */
-  --chart-1: oklch(0.60 0.09 350);           /* rose — #be8296 */
+  --border: oklch(0.92 0.01 350);
+  --input: oklch(0.92 0.01 350);
+  --ring: oklch(0.60 0.09 350);               
+  /* Chart colors */
+  --chart-1: oklch(0.60 0.09 350);           /* rose */
   --chart-2: oklch(0.65 0.15 170);           /* teal */
   --chart-3: oklch(0.70 0.14 60);            /* amber */
   --chart-4: oklch(0.62 0.14 310);           /* violet-rose */
   --chart-5: oklch(0.65 0.15 25);            /* orange-red */
-  --radius: 0.625rem;
-  --sidebar: oklch(0.97 0.008 350);
-  --sidebar-foreground: oklch(0.18 0.04 350);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.99 0.005 350);
+  --sidebar-foreground: oklch(0.20 0.03 350);
   --sidebar-primary: oklch(0.46 0.10 350);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.93 0.018 350);
-  --sidebar-accent-foreground: oklch(0.28 0.05 350);
-  --sidebar-border: oklch(0.90 0.012 350);
+  --sidebar-accent: oklch(0.94 0.015 350);
+  --sidebar-accent-foreground: oklch(0.25 0.05 350);
+  --sidebar-border: oklch(0.92 0.01 350);
   --sidebar-ring: oklch(0.60 0.09 350);
-  /* Risk level colors — kept distinct for accessibility */
   --risk-routine: oklch(0.70 0.17 165);
   --risk-monitor: oklch(0.75 0.15 75);
   --risk-intervention: oklch(0.70 0.14 25);
 }
 
-/* ── Dark mode: deep rosewood palette ──────────────────────────────────────
-   Anchors:
-     #1a0d12  → background          oklch(0.13 0.03 350)
-     #be8296  → primary in dark     oklch(0.68 0.09 350)  (lightened for contrast)
-     #9d3e5c  → strong accent cue   oklch(0.46 0.10 350)
-*/
+/* ── Dark mode: deep solid UI palette ────────────────────────────────────── */
 .dark {
-  --background: oklch(0.13 0.03 350);         /* #1a0d12 — deep rosewood black */
-  --foreground: oklch(0.92 0.008 350);        /* warm off-white text */
-  --card: oklch(0.18 0.035 350);              /* #2a1520 — dark rose-tinted card */
-  --card-foreground: oklch(0.92 0.008 350);
-  --popover: oklch(0.18 0.035 350);
-  --popover-foreground: oklch(0.92 0.008 350);
-  --primary: oklch(0.68 0.09 350);            /* lightened #be8296 for dark bg legibility */
-  --primary-foreground: oklch(0.13 0.03 350); /* dark text on rose primary */
-  --secondary: oklch(0.22 0.04 350);          /* deep rose secondary surface */
-  --secondary-foreground: oklch(0.90 0.008 350);
-  --muted: oklch(0.22 0.03 350);
-  --muted-foreground: oklch(0.72 0.035 350);
-  --accent: oklch(0.26 0.04 350);             /* deep rose accent surface */
-  --accent-foreground: oklch(0.90 0.008 350);
+  --background: oklch(0.16 0.01 350);         /* slightly lighter than pure black, like the reference */
+  --foreground: oklch(0.95 0.005 350);        /* crisp white text */
+  --card: oklch(0.20 0.015 350);              /* solid dark card */
+  --card-foreground: oklch(0.95 0.005 350);
+  --popover: oklch(0.20 0.015 350);
+  --popover-foreground: oklch(0.95 0.005 350);
+  --primary: oklch(0.68 0.09 350);            
+  --primary-foreground: oklch(0.13 0.03 350); 
+  --secondary: oklch(0.25 0.02 350);          
+  --secondary-foreground: oklch(0.95 0.005 350);
+  --muted: oklch(0.23 0.01 350);
+  --muted-foreground: oklch(0.65 0.01 350);
+  --accent: oklch(0.25 0.02 350);             
+  --accent-foreground: oklch(0.95 0.005 350);
   --destructive: oklch(0.65 0.20 25);
-  --border: oklch(0.30 0.04 350);
-  --input: oklch(0.30 0.04 350);
-  --ring: oklch(0.60 0.09 350);               /* #be8296 — rose focus ring */
-  /* Chart colors — same hue harmony, brightened for dark backgrounds */
-  --chart-1: oklch(0.68 0.09 350);           /* rose */
-  --chart-2: oklch(0.70 0.15 170);           /* teal */
-  --chart-3: oklch(0.75 0.14 60);            /* amber */
-  --chart-4: oklch(0.65 0.16 310);           /* violet-rose */
-  --chart-5: oklch(0.70 0.15 25);            /* orange-red */
-  --sidebar: oklch(0.15 0.03 350);
-  --sidebar-foreground: oklch(0.92 0.008 350);
+  --border: oklch(0.26 0.01 350);
+  --input: oklch(0.26 0.01 350);
+  --ring: oklch(0.60 0.09 350);               
+  --chart-1: oklch(0.68 0.09 350);           
+  --chart-2: oklch(0.70 0.15 170);           
+  --chart-3: oklch(0.75 0.14 60);            
+  --chart-4: oklch(0.65 0.16 310);           
+  --chart-5: oklch(0.70 0.15 25);            
+  --sidebar: oklch(0.16 0.01 350);
+  --sidebar-foreground: oklch(0.85 0.01 350);
   --sidebar-primary: oklch(0.68 0.09 350);
   --sidebar-primary-foreground: oklch(0.13 0.03 350);
-  --sidebar-accent: oklch(0.22 0.04 350);
-  --sidebar-accent-foreground: oklch(0.90 0.008 350);
-  --sidebar-border: oklch(0.30 0.04 350);
+  --sidebar-accent: oklch(0.22 0.02 350);
+  --sidebar-accent-foreground: oklch(0.95 0.005 350);
+  --sidebar-border: oklch(0.22 0.01 350);
   --sidebar-ring: oklch(0.60 0.09 350);
-  /* Risk level colors — kept distinct for accessibility */
   --risk-routine: oklch(0.70 0.17 165);
   --risk-monitor: oklch(0.78 0.15 80);
   --risk-intervention: oklch(0.72 0.16 25);
@@ -150,8 +137,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -160,22 +147,21 @@
   }
 }
 
-/* Custom utilities for the welfare system */
 @layer utilities {
   .glass-card {
-    @apply bg-card/90 backdrop-blur-xl border border-border/60 shadow-lg;
+    @apply bg-card border border-border/80 shadow-sm rounded-[16px];
   }
 
   .risk-badge-routine {
-    @apply bg-risk-routine/15 text-risk-routine border-risk-routine/30;
+    @apply bg-risk-routine/10 text-risk-routine border-risk-routine/20;
   }
 
   .risk-badge-monitor {
-    @apply bg-risk-monitor/15 text-risk-monitor border-risk-monitor/30;
+    @apply bg-risk-monitor/10 text-risk-monitor border-risk-monitor/20;
   }
 
   .risk-badge-intervention {
-    @apply bg-risk-intervention/15 text-risk-intervention border-risk-intervention/30;
+    @apply bg-risk-intervention/10 text-risk-intervention border-risk-intervention/20;
   }
 
   .stat-card-glow {
@@ -187,17 +173,17 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
+    height: 1px;
     background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    opacity: 0.6;
+    opacity: 0.3;
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.4s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s ease-out;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-pulse-soft {
@@ -211,11 +197,11 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulseSoft {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.6; }
 }

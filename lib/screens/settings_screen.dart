@@ -136,16 +136,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return showTimePicker(
       context: context,
       initialTime: _reminderTime,
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.indigo,
-            onPrimary: Colors.white,
-            surface: Color(0xFF1A2232),
-          ),
-        ),
-        child: child!,
-      ),
     );
   }
 
@@ -183,9 +173,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: context.rrBg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 24, 16, 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -481,7 +470,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 
