@@ -6,7 +6,6 @@ import '../widgets/icon_widgets.dart';
 import '../widgets/rr_card.dart';
 import '../services/auth_service.dart';
 import '../data/translations.dart';
-import '../widgets/bouncy_button.dart';
 
 // ── ActivationScreen ────────────────────────────────────────────────────────
 class ActivationScreen extends ConsumerStatefulWidget {
@@ -27,11 +26,12 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
   bool _slowRequest = false;
   String? _error;
 
-  String get _formatted => _raw.length > 4 ? '${_raw.substring(0, 4)}-${_raw.substring(4)}' : _raw;
+  String get _formatted =>
+      _raw.length > 4 ? '${_raw.substring(0, 4)}-${_raw.substring(4)}' : _raw;
   bool get _isReady => _isLoginMode
       ? _serviceId.trim().isNotEmpty && _pin.length == 6
       : _raw.length == 8 && _name.trim().length >= 2 && _pin.length == 6;
-  bool get _active  => _isReady && !_loading;
+  bool get _active => _isReady && !_loading;
 
   void _handleCode(String text) {
     final clean = text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
@@ -54,18 +54,18 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
     try {
       final auth = ref.read(authServiceProvider);
       Map<String, dynamic> user;
-      
+
       if (_isLoginMode) {
         user = await auth.login(_serviceId.trim(), _pin);
       } else {
         user = await auth.activateDevice(_formatted, _pin, _name.trim());
       }
-      
+
       // Save service_id and name for login screen
       const storage = FlutterSecureStorage();
       await storage.write(key: 'service_id', value: user['service_id']);
       await storage.write(key: 'user_name', value: user['username']);
-      
+
       if (!mounted) return;
       widget.onActivated();
     } catch (e) {
@@ -78,8 +78,11 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
             : tr('Invalid or already used code.', ref);
       } else if (msg.contains('401')) {
         errorText = tr('Invalid credentials.', ref);
-      } else if (msg.contains('timeout') || msg.contains('SocketException') || msg.contains('connection')) {
-        errorText = tr('Server is waking up. Please try again in 30 seconds.', ref);
+      } else if (msg.contains('timeout') ||
+          msg.contains('SocketException') ||
+          msg.contains('connection')) {
+        errorText =
+            tr('Server is waking up. Please try again in 30 seconds.', ref);
       } else {
         errorText = _isLoginMode
             ? tr('Login failed. Please try again.', ref)
@@ -107,26 +110,38 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 32, bottom: 24),
                   child: Container(
-                    width: 64, height: 64,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
                       color: AppColors.indigo.withValues(alpha: 0.10),
-                      border: Border.all(color: AppColors.indigo.withValues(alpha: 0.24)),
+                      border: Border.all(
+                          color: AppColors.indigo.withValues(alpha: 0.24)),
                     ),
-                    child: const Center(child: IconShield(size: 28, color: AppColors.indigo)),
+                    child: const Center(
+                        child: IconShield(size: 28, color: AppColors.indigo)),
                   ),
                 ),
               ),
               Text(
-                _isLoginMode ? tr('Login to your account', ref) : tr('Activate this device', ref),
-                style: TextStyle(fontSize: 27, fontWeight: FontWeight.w600, color: context.rrT1, height: 1.25),
+                _isLoginMode
+                    ? tr('Login to your account', ref)
+                    : tr('Activate this device', ref),
+                style: TextStyle(
+                    fontSize: 27,
+                    fontWeight: FontWeight.w600,
+                    color: context.rrT1,
+                    height: 1.25),
               ),
               const SizedBox(height: 14),
               Text(
-                _isLoginMode 
-                    ? tr('Enter your Service ID and 6-digit PIN.', ref) 
-                    : tr('Enter your code, full name, and create a 6-digit PIN.', ref),
-                style: TextStyle(fontSize: 14, color: context.rrT3, height: 1.65),
+                _isLoginMode
+                    ? tr('Enter your Service ID and 6-digit PIN.', ref)
+                    : tr(
+                        'Enter your code, full name, and create a 6-digit PIN.',
+                        ref),
+                style:
+                    TextStyle(fontSize: 14, color: context.rrT3, height: 1.65),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
@@ -135,13 +150,18 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.score1.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.score1.withValues(alpha: 0.25)),
+                    border: Border.all(
+                        color: AppColors.score1.withValues(alpha: 0.25)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: AppColors.score1, size: 16),
+                      const Icon(Icons.error_outline,
+                          color: AppColors.score1, size: 16),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.score1, fontSize: 13))),
+                      Expanded(
+                          child: Text(_error!,
+                              style: const TextStyle(
+                                  color: AppColors.score1, fontSize: 13))),
                     ],
                   ),
                 ),
@@ -152,19 +172,23 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.indigo.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.indigo.withValues(alpha: 0.20)),
+                    border: Border.all(
+                        color: AppColors.indigo.withValues(alpha: 0.20)),
                   ),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 14, height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.indigo),
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: const CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.indigo),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           tr('Server is starting up, please wait…', ref),
-                          style: TextStyle(color: AppColors.indigo, fontSize: 13),
+                          style: const TextStyle(
+                              color: AppColors.indigo, fontSize: 13),
                         ),
                       ),
                     ],
@@ -178,7 +202,9 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   child: Column(
                     children: [
                       if (_isLoginMode) ...[
-                        Text(tr('Service ID', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Service ID', ref),
+                            style:
+                                TextStyle(fontSize: 12, color: context.rrT4)),
                         const SizedBox(height: 8),
                         TextField(
                           enabled: !_loading,
@@ -186,33 +212,57 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                           textCapitalization: TextCapitalization.characters,
                           onChanged: (v) => setState(() => _serviceId = v),
                           style: TextStyle(fontSize: 18, color: context.rrT1),
-                          decoration: InputDecoration(hintText: 'e.g. SRV-1234', hintStyle: TextStyle(color: context.rrT7), border: InputBorder.none),
+                          decoration: InputDecoration(
+                              hintText: 'e.g. SRV-1234',
+                              hintStyle: TextStyle(color: context.rrT7),
+                              border: InputBorder.none),
                         ),
                         const SizedBox(height: 16),
-                        Text(tr('6-digit PIN', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('6-digit PIN', ref),
+                            style:
+                                TextStyle(fontSize: 12, color: context.rrT4)),
                       ] else ...[
-                        Text(tr('Activation code', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Activation code', ref),
+                            style:
+                                TextStyle(fontSize: 12, color: context.rrT4)),
                         const SizedBox(height: 8),
                         TextField(
                           enabled: !_loading,
                           textAlign: TextAlign.center,
                           textCapitalization: TextCapitalization.characters,
                           onChanged: _handleCode,
-                          style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 24, letterSpacing: 6, color: context.rrT1),
-                          decoration: InputDecoration(hintText: 'XXXX-XXXX', hintStyle: TextStyle(color: context.rrT7, letterSpacing: 6), border: InputBorder.none),
-                          controller: TextEditingController(text: _formatted)..selection = TextSelection.collapsed(offset: _formatted.length),
+                          style: TextStyle(
+                              fontFamily: 'JetBrains Mono',
+                              fontSize: 24,
+                              letterSpacing: 6,
+                              color: context.rrT1),
+                          decoration: InputDecoration(
+                              hintText: 'XXXX-XXXX',
+                              hintStyle: TextStyle(
+                                  color: context.rrT7, letterSpacing: 6),
+                              border: InputBorder.none),
+                          controller: TextEditingController(text: _formatted)
+                            ..selection = TextSelection.collapsed(
+                                offset: _formatted.length),
                         ),
                         const SizedBox(height: 16),
-                        Text(tr('Full Name', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Full Name', ref),
+                            style:
+                                TextStyle(fontSize: 12, color: context.rrT4)),
                         TextField(
                           enabled: !_loading,
                           textAlign: TextAlign.center,
                           onChanged: (v) => setState(() => _name = v),
                           style: TextStyle(fontSize: 18, color: context.rrT1),
-                          decoration: InputDecoration(hintText: 'e.g. Constable Ravi', hintStyle: TextStyle(color: context.rrT7), border: InputBorder.none),
+                          decoration: InputDecoration(
+                              hintText: 'e.g. Constable Ravi',
+                              hintStyle: TextStyle(color: context.rrT7),
+                              border: InputBorder.none),
                         ),
                         const SizedBox(height: 16),
-                        Text(tr('Create 6-digit PIN', ref), style: TextStyle(fontSize: 12, color: context.rrT4)),
+                        Text(tr('Create 6-digit PIN', ref),
+                            style:
+                                TextStyle(fontSize: 12, color: context.rrT4)),
                       ],
                       TextField(
                         enabled: !_loading,
@@ -221,15 +271,24 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                         maxLength: 6,
                         obscureText: true,
                         onChanged: (v) => setState(() => _pin = v),
-                        style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 24, letterSpacing: 8, color: context.rrT1),
-                        decoration: InputDecoration(hintText: '******', hintStyle: TextStyle(color: context.rrT7, letterSpacing: 8), border: InputBorder.none, counterText: ''),
+                        style: TextStyle(
+                            fontFamily: 'JetBrains Mono',
+                            fontSize: 24,
+                            letterSpacing: 8,
+                            color: context.rrT1),
+                        decoration: InputDecoration(
+                            hintText: '******',
+                            hintStyle: TextStyle(
+                                color: context.rrT7, letterSpacing: 8),
+                            border: InputBorder.none,
+                            counterText: ''),
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-              BouncyButton(
+              GestureDetector(
                 onTap: _active ? _submit : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -237,35 +296,51 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
-                    color: _active ? AppColors.indigo : AppColors.indigo.withValues(alpha: 0.14),
+                    color: _active
+                        ? AppColors.indigo
+                        : AppColors.indigo.withValues(alpha: 0.14),
                   ),
                   child: Center(
                     child: Text(
-                      _loading 
-                          ? (_isLoginMode ? tr('Logging in…', ref) : tr('Activating…', ref)) 
-                          : (_isLoginMode ? tr('Login', ref) : tr('Activate', ref)),
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _active ? const Color(0xFF0C1220) : AppColors.indigo.withValues(alpha: 0.45)),
+                      _loading
+                          ? (_isLoginMode
+                              ? tr('Logging in…', ref)
+                              : tr('Activating…', ref))
+                          : (_isLoginMode
+                              ? tr('Login', ref)
+                              : tr('Activate', ref)),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: _active
+                              ? const Color(0xFF0C1220)
+                              : AppColors.indigo.withValues(alpha: 0.45)),
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               Center(
-                child: BouncyButton(
-                  onTap: _loading ? null : () {
-                    setState(() {
-                      _isLoginMode = !_isLoginMode;
-                      _error = null;
-                      _pin = '';
-                    });
-                  },
+                child: GestureDetector(
+                  onTap: _loading
+                      ? null
+                      : () {
+                          setState(() {
+                            _isLoginMode = !_isLoginMode;
+                            _error = null;
+                            _pin = '';
+                          });
+                        },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      _isLoginMode 
-                          ? tr('New device? Activate with a code', ref) 
+                      _isLoginMode
+                          ? tr('New device? Activate with a code', ref)
                           : tr('Already have credentials? Login instead', ref),
-                      style: const TextStyle(fontSize: 14, color: AppColors.indigo, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.indigo,
+                          fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
