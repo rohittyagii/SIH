@@ -1,39 +1,64 @@
+// Import the core material design library which gives us access to basic Flutter UI components and the Color class.
 import 'package:flutter/material.dart';
+// Import the google_fonts package to easily use custom fonts (like Outfit) from Google Fonts in our app.
 import 'package:google_fonts/google_fonts.dart';
 
 // ── Dark palette (rosewood dark — maps to :root CSS vars) ─────────────────
+// We define an abstract final class so it cannot be instantiated or extended.
+// It acts as a namespace to hold our dark mode specific color constants.
 abstract final class AppColorsDark {
+  // The primary background color for the dark theme.
   static const bg   = Color(0xFF140A0E); // slightly deeper rosewood black for higher contrast
+  // A darker variation of the background color, useful for deeper layers or behind certain elements.
   static const bgd  = Color(0xFF0F070A); // even deeper
+  // A slightly lighter background color for elevated surfaces like dialogs or bottom sheets.
   static const bgn  = Color(0xFF1C0D14); // elevated surfaces
+  // The background color specifically for card widgets in dark mode.
   static const bgc  = Color(0xFF24111B); // card background
 
   // Card chrome
+  // A subtle transparent white used for the top highlight or border of cards to create depth.
   static const cbt  = Color(0x26FFFFFF); // rgba(255,255,255,0.15)
+  // Another subtle transparent white for general card borders or highlights.
   static const cb   = Color(0x12FFFFFF); // rgba(255,255,255,0.07)
+  // A deep semi-transparent black used for shadows to make cards pop out from the background.
   static const csh  = Color(0x8A000000); // rgba(0,0,0,0.54) - deeper shadow
 
   // Text t1 → t7 (shifted lighter for much higher contrast)
+  // These represent a typography color scale from primary (most prominent) to secondary and disabled (less prominent).
+  // t1 is the brightest text color, used for primary headings and important body text.
   static const t1   = Color(0xFFFFF5F7);
+  // t2 is slightly dimmer, used for secondary text.
   static const t2   = Color(0xFFEEE0E5);
+  // t2b is a variant of t2 with a slight rose tint.
   static const t2b  = Color(0xFFD1ABB8);
+  // t3 is for tertiary text, like subtitles or less important information.
   static const t3   = Color(0xFFB88B9D);
+  // t4, t5, t6, t7 are increasingly darker/dimmer shades for muted text, captions, or disabled states.
   static const t4   = Color(0xFF9F7183);
   static const t5   = Color(0xFF895C6E);
   static const t6   = Color(0xFF734958);
   static const t7   = Color(0xFF5F3947);
 
   // Surfaces
+  // 'ov' might stand for overlay; a very faint transparent white for hover or tap highlights.
   static const ov   = Color(0x0AFFFFFF); 
+  // 'pl' could stand for panel or placeholder background, slightly more visible than 'ov'.
   static const pl   = Color(0x0EFFFFFF); 
+  // Used for inner surfaces or input fields in dark mode.
   static const inSurface = Color(0x12FFFFFF); 
 
   // Borders / dividers - increased opacity for more definition
+  // A scale of semi-transparent whites used to draw lines, dividers, and borders.
+  // 'dv', 'dv2', 'dv3' are very subtle dividers.
   static const dv   = Color(0x1AFFFFFF);
   static const dv2  = Color(0x1EFFFFFF);
   static const dv3  = Color(0x24FFFFFF);
+  // 'ib' stands for input border.
   static const ib   = Color(0x29FFFFFF);
+  // 'plb' could be a placeholder border or panel border.
   static const plb  = Color(0x2EFFFFFF);
+  // b1 through b7 are increasingly opaque borders for elements requiring stronger outlines.
   static const b1   = Color(0x33FFFFFF);
   static const b2   = Color(0x38FFFFFF);
   static const b3   = Color(0x3DFFFFFF);
@@ -44,17 +69,25 @@ abstract final class AppColorsDark {
 }
 
 // ── Light palette (rosewood light) ─────────────────────────────────────────
+// Similar to AppColorsDark, this class holds all the light mode specific color constants.
 abstract final class AppColorsLight {
+  // The primary background color for the light theme, pure white.
   static const bg   = Color(0xFFFFFFFF); // pure white for max contrast
+  // A darker, slightly rose-tinted background for depth in the light theme.
   static const bgd  = Color(0xFFF7ECF0); // slightly lighter rose depth
+  // Background color for elevated surfaces, kept pure white.
   static const bgn  = Color(0xFFFFFFFF); // pure white cards
+  // Background color for cards in light mode.
   static const bgc  = Color(0xFFFFFFFF); // card fills
 
+  // Semi-transparent blacks used for highlights and shadows in light mode to create depth.
   static const cbt  = Color(0x26000000);
   static const cb   = Color(0x1A000000);
   static const csh  = Color(0x1F000000);
 
   // Text t1 → t7 (shifted darker for much higher contrast)
+  // Text colors for light mode, ranging from very dark (almost black) to lighter, muted shades.
+  // t1 is the most prominent, darkest color for primary text.
   static const t1   = Color(0xFF12080C);
   static const t2   = Color(0xFF24131A);
   static const t2b  = Color(0xFF422B36);
@@ -62,13 +95,16 @@ abstract final class AppColorsLight {
   static const t4   = Color(0xFF684857);
   static const t5   = Color(0xFF7C5868);
   static const t6   = Color(0xFF8C6677);
+  // t7 is the lightest text color, used for disabled or very muted text.
   static const t7   = Color(0xFF9E7587);
 
+  // Faint semi-transparent blacks for overlays, panel backgrounds, and inner surfaces in light mode.
   static const ov   = Color(0x0C000000);
   static const pl   = Color(0x0F000000);
   static const inSurface = Color(0x0F000000);
 
   // Borders / dividers - increased opacity for more definition
+  // A scale of semi-transparent blacks used for drawing borders and dividers in light mode.
   static const dv   = Color(0x1A000000);
   static const dv2  = Color(0x1E000000);
   static const dv3  = Color(0x24000000);
@@ -84,15 +120,20 @@ abstract final class AppColorsLight {
 }
 
 // ── Brand / semantic colors (same in both themes) ───────────────────────────
+// These colors are independent of the dark or light theme.
+// They represent the brand identity and convey specific meanings (like success, warning).
 abstract final class AppColors {
   // Score colors (1–5) — kept distinct for accessibility
-  static const score1  = Color(0xFFD55E00);
-  static const score2  = Color(0xFFC07830);
-  static const score3  = Color(0xFF56B4E9);
-  static const score4  = Color(0xFF3EC4A0);
-  static const score5  = Color(0xFF34D399);
+  // Used to visually indicate a score or rating from bad (score1) to excellent (score5).
+  static const score1  = Color(0xFFD55E00); // Bad/Low score color (Orange/Red)
+  static const score2  = Color(0xFFC07830); // Below average score color (Amber)
+  static const score3  = Color(0xFF56B4E9); // Average score color (Blue)
+  static const score4  = Color(0xFF3EC4A0); // Good score color (Teal)
+  static const score5  = Color(0xFF34D399); // Excellent score color (Green)
 
+  // A list containing all the score colors, useful for iterating over them in UI components.
   static final scoreColors = [score1, score2, score3, score4, score5];
+  // A list of semi-transparent versions of the score colors, used for glowing effects or faint backgrounds.
   static final scoreGlows  = [
     const Color(0x33D55E00),
     const Color(0x33C07830),
@@ -102,21 +143,31 @@ abstract final class AppColors {
   ];
 
   // Accent — rosewood palette
+  // The primary accent color for the app, used for prominent buttons or active states.
   static const indigo  = Color(0xFFBE8296); // muted rose (#be8296) — primary accent
+  // A strong call-to-action (CTA) color.
   static const rose    = Color(0xFF9D3E5C); // deep crimson-rose (#9d3e5c) — strong CTA
+  // Warm amber, used for highlights or warnings.
   static const amber   = Color(0xFFC4A870); // warm amber — kept for contrast
+  // Standard semantic color for errors or destructive actions.
   static const red     = Color(0xFFEF6B6B); // error red — kept
+  // Standard semantic color for warnings.
   static const orange  = Color(0xFFC07830); // warning orange — kept
 
   // Dimension line colors (for the chart)
-  static const dimOverall  = Color(0xFFBE8296); // muted rose
-  static const dimSleep    = Color(0xFF56B4E9); // sky blue — distinct
-  static const dimPhysical = Color(0xFF34D399); // teal-green — distinct
-  static const dimFocus    = Color(0xFFC4A870); // warm amber — distinct
+  // Specific colors mapped to different dimensions or categories in a chart or graph.
+  static const dimOverall  = Color(0xFFBE8296); // muted rose, represents overall score
+  static const dimSleep    = Color(0xFF56B4E9); // sky blue, represents sleep data
+  static const dimPhysical = Color(0xFF34D399); // teal-green, represents physical activity
+  static const dimFocus    = Color(0xFFC4A870); // warm amber, represents focus or mental clarity
 }
 
 // ── AppColors Extension ───────────────────────────────────────────────────
+// We create a ThemeExtension to safely plug our custom color palette into Flutter's Theme system.
+// This allows widgets to access our custom colors easily based on the current theme (light or dark).
 class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
+  // Declare a final field for every custom color we want to provide through the theme.
+  // The 'rr' prefix helps differentiate these custom colors from standard Material colors.
   final Color rrBg;
   final Color rrBgd;
   final Color rrBgn;
@@ -148,6 +199,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color rrB6;
   final Color rrB7;
 
+  // The constructor requires all color fields to be provided when creating an instance.
   const AppColorsExtension({
     required this.rrBg,
     required this.rrBgd,
@@ -181,6 +233,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.rrB7,
   });
 
+  // The copyWith method is required by ThemeExtension.
+  // It allows Flutter to create a copy of this extension with some colors overridden.
   @override
   AppColorsExtension copyWith({
     Color? rrBg,
@@ -214,6 +268,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? rrB6,
     Color? rrB7,
   }) {
+    // Return a new instance, using the provided color if given, otherwise falling back to the existing color.
     return AppColorsExtension(
       rrBg: rrBg ?? this.rrBg,
       rrBgd: rrBgd ?? this.rrBgd,
@@ -248,9 +303,13 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     );
   }
 
+  // The lerp (linear interpolation) method is required by ThemeExtension.
+  // It allows Flutter to smoothly transition between colors when changing themes (e.g., animating from light to dark mode).
   @override
   AppColorsExtension lerp(ThemeExtension<AppColorsExtension>? other, double t) {
+    // If the other theme extension is not of the same type, don't interpolate.
     if (other is! AppColorsExtension) return this;
+    // Interpolate each color property individually based on the progress 't' (from 0.0 to 1.0).
     return AppColorsExtension(
       rrBg: Color.lerp(rrBg, other.rrBg, t)!,
       rrBgd: Color.lerp(rrBgd, other.rrBgd, t)!,
@@ -287,12 +346,24 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 }
 
 // ── AppColors extension on BuildContext ────────────────────────────────────
+// This extension adds helper properties to the BuildContext class.
+// It gives us an extremely easy way to access our custom colors anywhere in the UI.
+// Instead of writing: Theme.of(context).extension<AppColorsExtension>()!.rrBg
+// We can just write: context.rrBg
 extension AppColorsX on BuildContext {
+  // A helper getter that checks if the current theme is set to dark mode.
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  
+  // A private helper that attempts to retrieve our custom ThemeExtension from the context.
   AppColorsExtension get _ext {
+    // Try to get the AppColorsExtension from the current theme.
     final ext = Theme.of(this).extension<AppColorsExtension>();
+    // If it exists, return it.
     if (ext != null) return ext;
+    // If it doesn't exist (e.g., the Theme wasn't set up correctly), we create a fallback instance.
+    // We check if the brightness is dark.
     final d = isDark;
+    // We return a new AppColorsExtension manually populated with the correct dark or light colors.
     return AppColorsExtension(
       rrBg: d ? AppColorsDark.bg : AppColorsLight.bg,
       rrBgd: d ? AppColorsDark.bgd : AppColorsLight.bgd,
@@ -327,6 +398,8 @@ extension AppColorsX on BuildContext {
     );
   }
 
+  // Expose each color property directly on the BuildContext for ultimate convenience.
+  // When you call 'context.rrBg', it calls the private _ext getter, then fetches 'rrBg'.
   Color get rrBg => _ext.rrBg;
   Color get rrBgd => _ext.rrBgd;
   Color get rrBgn => _ext.rrBgn;
@@ -344,6 +417,7 @@ extension AppColorsX on BuildContext {
   Color get rrT7 => _ext.rrT7;
   Color get rrOv => _ext.rrOv;
   Color get rrPl => _ext.rrPl;
+  // Note: the extension property is named 'rrIn' but it maps to 'rrInSurface'.
   Color get rrIn => _ext.rrInSurface;
   Color get rrDv => _ext.rrDv;
   Color get rrDv2 => _ext.rrDv2;
@@ -360,26 +434,49 @@ extension AppColorsX on BuildContext {
 }
 
 // ── ThemeData factories ────────────────────────────────────────────────────
+// This class contains static methods to generate the complete ThemeData objects for the app.
+// These are passed into the MaterialApp widget at the root of the app.
 abstract final class AppTheme {
+  // Factory method to build the dark theme.
+  // It calls the private _build method, passing dark brightness and the dark background color.
   static ThemeData dark()  => _build(Brightness.dark,  AppColorsDark.bg);
+  // Factory method to build the light theme.
+  // It calls the private _build method, passing light brightness and the light background color.
   static ThemeData light() => _build(Brightness.light, AppColorsLight.bg);
 
+  // A private helper method that constructs the actual ThemeData object.
+  // This prevents code duplication between the dark() and light() methods.
   static ThemeData _build(Brightness brightness, Color scaffoldBg) {
+    // Create a base ThemeData instance with the specified brightness.
     final base = ThemeData(brightness: brightness);
+    // Determine if the requested theme is dark mode.
     final isDark = brightness == Brightness.dark;
+    
+    // Use copyWith to customize specific parts of the base theme.
     return base.copyWith(
+      // Set the default background color for Scaffolds (the main screen container).
       scaffoldBackgroundColor: scaffoldBg,
+      // Customize the text theme using GoogleFonts.
+      // We apply the 'Outfit' font family to all text styles in the base text theme.
       textTheme: GoogleFonts.outfitTextTheme(base.textTheme).apply(
+        // Set the default text color for body text based on whether it's dark or light mode.
         bodyColor:    isDark ? AppColorsDark.t1 : AppColorsLight.t1,
+        // Set the default text color for larger display text based on whether it's dark or light mode.
         displayColor: isDark ? AppColorsDark.t1 : AppColorsLight.t1,
       ),
+      // Set up a ColorScheme based on a seed color (AppColors.indigo).
+      // Flutter automatically generates a harmonized palette of colors from this seed.
       colorScheme: ColorScheme.fromSeed(
-        brightness: brightness,
-        seedColor: AppColors.indigo,
+        brightness: brightness, // Ensure the generated scheme matches our brightness.
+        seedColor: AppColors.indigo, // The core brand color used to generate the palette.
+        // Explicitly set the surface color, overriding the auto-generated one.
         surface: isDark ? AppColorsDark.bgc : AppColorsLight.bgc,
       ),
+      // Inject our custom ThemeExtension into the ThemeData.
+      // This is crucial because it allows the 'context.rrBg' getters (defined earlier) to find these colors.
       extensions: [
         AppColorsExtension(
+          // For every custom color property, we pass the dark variant if 'isDark' is true, else the light variant.
           rrBg: isDark ? AppColorsDark.bg : AppColorsLight.bg,
           rrBgd: isDark ? AppColorsDark.bgd : AppColorsLight.bgd,
           rrBgn: isDark ? AppColorsDark.bgn : AppColorsLight.bgn,
