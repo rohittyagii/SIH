@@ -31,9 +31,29 @@ class HomeScreen extends ConsumerWidget {
 
   String get _todayLabel {
     final now = DateTime.now();
-    const days   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
@@ -49,7 +69,8 @@ class HomeScreen extends ConsumerWidget {
           const AnimatedOrbsBackground(),
           Positioned.fill(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 52, 20, 120),
+              padding: EdgeInsets.fromLTRB(
+                  20, MediaQuery.of(context).padding.top + 52, 20, 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -92,7 +113,8 @@ class HomeScreen extends ConsumerWidget {
                                     horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(999),
-                                  color: AppColors.indigo.withValues(alpha: 0.10),
+                                  color:
+                                      AppColors.indigo.withValues(alpha: 0.10),
                                   border: Border.all(
                                       color: AppColors.indigo
                                           .withValues(alpha: 0.20)),
@@ -100,7 +122,8 @@ class HomeScreen extends ConsumerWidget {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const IconFlame(size: 12, color: AppColors.indigo),
+                                    const IconFlame(
+                                        size: 12, color: AppColors.indigo),
                                     const SizedBox(width: 4),
                                     Text('${tr('Day', ref)} $streak',
                                         style: const TextStyle(
@@ -282,9 +305,12 @@ class _BreathingCircleState extends ConsumerState<_BreathingCircle>
     return AnimatedBuilder(
       animation: Listenable.merge([_breatheController, _rotateController]),
       builder: (context, child) {
-        final scale = 1.0 + (_breatheController.value * 0.6); // Scales from 1x to 1.6x
-        final opacity = 0.05 + (_breatheController.value * 0.1); 
-        final isBreathingIn = _breatheController.status == AnimationStatus.forward || _breatheController.status == AnimationStatus.dismissed;
+        final scale =
+            1.0 + (_breatheController.value * 0.6); // Scales from 1x to 1.6x
+        final opacity = 0.05 + (_breatheController.value * 0.1);
+        final isBreathingIn =
+            _breatheController.status == AnimationStatus.forward ||
+                _breatheController.status == AnimationStatus.dismissed;
         final time = _rotateController.value * 2 * math.pi;
 
         return Column(
@@ -324,9 +350,11 @@ class _BreathingCircleState extends ConsumerState<_BreathingCircle>
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 800),
                   child: Text(
-                    isBreathingIn ? tr('Breathe in...', ref) : tr('Breathe out...', ref),
+                    isBreathingIn
+                        ? tr('Breathe in...', ref)
+                        : tr('Breathe out...', ref),
                     key: ValueKey(isBreathingIn),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: AppColors.indigo,
@@ -366,16 +394,16 @@ class _IrregularCirclePainter extends CustomPainter {
 
     final path = Path();
     const int points = 180;
-    
+
     for (int i = 0; i <= points; i++) {
       final t = i / points;
       final theta = t * 2 * math.pi;
 
       // Map overlapping sine waves around the circumference
-      final r = baseRadius + 
-                (baseRadius * 0.04) * math.sin(3 * theta + time * 2) + 
-                (baseRadius * 0.03) * math.cos(5 * theta - time) +
-                (baseRadius * 0.02) * math.sin(7 * theta + time * 1.5);
+      final r = baseRadius +
+          (baseRadius * 0.04) * math.sin(3 * theta + time * 2) +
+          (baseRadius * 0.03) * math.cos(5 * theta - time) +
+          (baseRadius * 0.02) * math.sin(7 * theta + time * 1.5);
 
       final x = center.dx + r * math.cos(theta);
       final y = center.dy + r * math.sin(theta);
@@ -392,10 +420,8 @@ class _IrregularCirclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _IrregularCirclePainter oldDelegate) {
-    return oldDelegate.color != color || 
-           oldDelegate.isFilled != isFilled ||
-           oldDelegate.time != time;
+    return oldDelegate.color != color ||
+        oldDelegate.isFilled != isFilled ||
+        oldDelegate.time != time;
   }
 }
-
-

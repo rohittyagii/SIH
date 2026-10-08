@@ -61,12 +61,18 @@ class _ScalePickerState extends State<ScalePicker> {
 
   IconData _getIconForValue(int v) {
     switch (v) {
-      case 1: return Icons.sentiment_very_dissatisfied_rounded;
-      case 2: return Icons.sentiment_dissatisfied_rounded;
-      case 3: return Icons.sentiment_neutral_rounded;
-      case 4: return Icons.sentiment_satisfied_rounded;
-      case 5: return Icons.sentiment_very_satisfied_rounded;
-      default: return Icons.sentiment_neutral_rounded;
+      case 1:
+        return Icons.sentiment_very_dissatisfied_rounded;
+      case 2:
+        return Icons.sentiment_dissatisfied_rounded;
+      case 3:
+        return Icons.sentiment_neutral_rounded;
+      case 4:
+        return Icons.sentiment_satisfied_rounded;
+      case 5:
+        return Icons.sentiment_very_satisfied_rounded;
+      default:
+        return Icons.sentiment_neutral_rounded;
     }
   }
 
@@ -76,8 +82,8 @@ class _ScalePickerState extends State<ScalePicker> {
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
-            final trackHeight = 44.0;
-            final thumbSize = 56.0;
+            const trackHeight = 44.0;
+            const thumbSize = 56.0;
             final maxWidth = constraints.maxWidth;
             final segment = maxWidth / 5;
 
@@ -86,16 +92,22 @@ class _ScalePickerState extends State<ScalePicker> {
             if (_isDragging && _dragX != null) {
               thumbX = _dragX! - (thumbSize / 2);
             } else if (widget.value > 0) {
-              thumbX = (widget.value - 1) * segment + (segment / 2) - (thumbSize / 2);
+              thumbX = (widget.value - 1) * segment +
+                  (segment / 2) -
+                  (thumbSize / 2);
             } else {
-              thumbX = (2) * segment + (segment / 2) - (thumbSize / 2); // Default to center if no value
+              thumbX = (2) * segment +
+                  (segment / 2) -
+                  (thumbSize / 2); // Default to center if no value
             }
 
             // Clamp thumb position within widget bounds
             thumbX = thumbX.clamp(0.0, maxWidth - thumbSize);
 
-            final col = widget.value > 0 ? scoreColor(widget.value) : context.rrT4;
-            final activeIcon = _getIconForValue(widget.value > 0 ? widget.value : 3);
+            final col =
+                widget.value > 0 ? scoreColor(widget.value) : context.rrT4;
+            final activeIcon =
+                _getIconForValue(widget.value > 0 ? widget.value : 3);
 
             return GestureDetector(
               onHorizontalDragStart: (d) => _handlePanStart(d, maxWidth),
@@ -116,7 +128,7 @@ class _ScalePickerState extends State<ScalePicker> {
                         border: Border.all(color: context.rrDv2, width: 1),
                         boxShadow: [
                           BoxShadow(
-                            color: context.rrCsh.withOpacity(0.02),
+                            color: context.rrCsh.withValues(alpha: 0.02),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           )
@@ -136,11 +148,14 @@ class _ScalePickerState extends State<ScalePicker> {
                                 if (i > 0)
                                   Positioned(
                                     left: 0,
-                                    child: Container(width: 1, height: 16, color: context.rrDv2),
+                                    child: Container(
+                                        width: 1,
+                                        height: 16,
+                                        color: context.rrDv2),
                                   ),
                                 Icon(
                                   _getIconForValue(n),
-                                  color: context.rrT4.withOpacity(0.3),
+                                  color: context.rrT4.withValues(alpha: 0.3),
                                   size: 28,
                                 ),
                               ],
@@ -152,7 +167,9 @@ class _ScalePickerState extends State<ScalePicker> {
                     // Animated Thumb
                     if (widget.value > 0 || _isDragging)
                       AnimatedPositioned(
-                        duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
+                        duration: _isDragging
+                            ? Duration.zero
+                            : const Duration(milliseconds: 300),
                         curve: Curves.easeOutBack,
                         left: thumbX,
                         child: AnimatedContainer(
@@ -164,7 +181,7 @@ class _ScalePickerState extends State<ScalePicker> {
                             color: col,
                             boxShadow: [
                               BoxShadow(
-                                color: col.withOpacity(0.35),
+                                color: col.withValues(alpha: 0.35),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               )
@@ -173,7 +190,7 @@ class _ScalePickerState extends State<ScalePicker> {
                           child: Center(
                             child: Icon(
                               activeIcon,
-                              color: Colors.white.withOpacity(0.95),
+                              color: Colors.white.withValues(alpha: 0.95),
                               size: 34,
                             ),
                           ),
@@ -189,12 +206,19 @@ class _ScalePickerState extends State<ScalePicker> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Not ready', style: TextStyle(fontSize: 11, color: context.rrT4, fontWeight: FontWeight.w500)),
-            Text('Fully ready', style: TextStyle(fontSize: 11, color: context.rrT4, fontWeight: FontWeight.w500)),
+            Text('Not ready',
+                style: TextStyle(
+                    fontSize: 11,
+                    color: context.rrT4,
+                    fontWeight: FontWeight.w500)),
+            Text('Fully ready',
+                style: TextStyle(
+                    fontSize: 11,
+                    color: context.rrT4,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ],
     );
   }
 }
-

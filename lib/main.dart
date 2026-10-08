@@ -200,7 +200,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
       // Enforce once-per-day locally: if any loaded entry matches today, mark done.
       if (!ref.read(todayDoneProvider)) {
         final todayStr = _todayIso();
-        final matchesToday = history.any((e) => _entryMatchesDate(e.date, todayStr));
+        final matchesToday =
+            history.any((e) => _entryMatchesDate(e.date, todayStr));
         if (matchesToday) {
           ref.read(todayDoneProvider.notifier).state = true;
         }
@@ -303,13 +304,16 @@ class _MainAppState extends ConsumerState<_MainApp> {
               },
               child: KeyedSubtree(
                 key: ValueKey(tab),
-                child: _tabBody(context, ref, tab, history, todayDone, isDark, streak),
+                child: _tabBody(
+                    context, ref, tab, history, todayDone, isDark, streak),
               ),
             ),
-            
+
             // 2. Top Blurry Gradient Mask (for status bar legibility)
             Positioned(
-              top: 0, left: 0, right: 0,
+              top: 0,
+              left: 0,
+              right: 0,
               height: MediaQuery.of(context).padding.top + 32,
               child: IgnorePointer(
                 child: ClipRect(
@@ -323,7 +327,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
                     blendMode: BlendMode.dstIn,
                     child: BackdropFilter(
                       filter: ui.ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-                      child: Container(color: context.rrBg.withOpacity(0.6)),
+                      child:
+                          Container(color: context.rrBg.withValues(alpha: 0.6)),
                     ),
                   ),
                 ),
@@ -332,8 +337,10 @@ class _MainAppState extends ConsumerState<_MainApp> {
 
             // 3. Bottom Blurry Gradient Mask (so content smoothly vanishes under nav island)
             Positioned(
-              bottom: 0, left: 0, right: 0,
-              height: 120, 
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 120,
               child: IgnorePointer(
                 child: ClipRect(
                   child: ShaderMask(
@@ -346,7 +353,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
                     blendMode: BlendMode.dstIn,
                     child: BackdropFilter(
                       filter: ui.ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-                      child: Container(color: context.rrBg.withOpacity(0.6)),
+                      child:
+                          Container(color: context.rrBg.withValues(alpha: 0.6)),
                     ),
                   ),
                 ),
@@ -454,8 +462,18 @@ bool _entryMatchesDate(String entryDate, String todayIso) {
   if (entryDate == todayIso) return true;
   // Friendly format: "Thu, Sep 11"
   const months = {
-    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-    'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+    'Jan': 1,
+    'Feb': 2,
+    'Mar': 3,
+    'Apr': 4,
+    'May': 5,
+    'Jun': 6,
+    'Jul': 7,
+    'Aug': 8,
+    'Sep': 9,
+    'Oct': 10,
+    'Nov': 11,
+    'Dec': 12,
   };
   try {
     final stripped = entryDate.replaceAll(',', '').trim();

@@ -180,7 +180,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
                       const SizedBox(
                         width: 14,
                         height: 14,
-                        child: const CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                             strokeWidth: 2, color: AppColors.indigo),
                       ),
                       const SizedBox(width: 8),

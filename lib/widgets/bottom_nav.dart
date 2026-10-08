@@ -4,7 +4,6 @@ import '../theme/colors.dart';
 import '../widgets/icon_widgets.dart';
 import '../data/translations.dart';
 import '../providers/app_state.dart';
-import '../data/seed.dart';
 
 import '../widgets/bouncy_button.dart';
 
@@ -47,7 +46,7 @@ class BottomNav extends ConsumerWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               )
@@ -107,7 +106,7 @@ class BottomNav extends ConsumerWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.indigo.withOpacity(0.4),
+              color: AppColors.indigo.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )
@@ -137,8 +136,8 @@ class BottomNav extends ConsumerWidget {
               duration: const Duration(milliseconds: 500),
               curve: const ElasticOutCurve(0.7), // Dramatic bounce
               transform: Matrix4.identity()
-                ..translate(0.0, isActive ? -4.0 : 0.0) // Move up slightly
-                ..scale(isActive ? 1.35 : 1.0), // Large scale
+                ..translateByDouble(0.0, isActive ? -4.0 : 0.0, 0.0, 1.0) // Move up slightly
+                ..scaleByDouble(isActive ? 1.35 : 1.0, isActive ? 1.35 : 1.0, isActive ? 1.35 : 1.0, 1.0), // Large scale
               transformAlignment: Alignment.center,
               child: t.icon(size: 24.0, color: color),
             ),
